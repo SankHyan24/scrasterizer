@@ -1,27 +1,12 @@
 #pragma once
 
 #include <iostream>
+#include <GL/gl3w.h>
 
 #include <imgui.h>
 #include <glfw/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-void SetupImGui(GLFWwindow *window)
-{
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
-    (void)io;
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-
-    // Setup Platform/Renderer bindings
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-}
 
 class Context
 {
@@ -55,8 +40,9 @@ public:
 
         glfwMakeContextCurrent(window);
         glfwSwapInterval(1);
+        gl3wInit();
 
-        SetupImGui(window);
+        SetupImGui();
     }
 
     ~Window()
@@ -105,6 +91,22 @@ public:
     }
 
 private:
+    void SetupImGui()
+    {
+        // Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO &io = ImGui::GetIO();
+        (void)io;
+
+        // Setup Dear ImGui style
+        ImGui::StyleColorsDark();
+
+        // Setup Platform/Renderer bindings
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 330");
+    }
+
     GLFWwindow *window;
     char *textureMap;
     RenderFunc renderFunc;

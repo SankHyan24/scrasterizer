@@ -19,6 +19,10 @@ target_sources(${_EXE_NAME_} PUBLIC ${_SOURCE_})
 target_include_directories(${_EXE_NAME_} PUBLIC "./include")
 
 find_package(OpenGL REQUIRED)
+
+# add gl3w
+add_subdirectory(submodules/gl3w)
+
 # add glfw
 add_subdirectory(submodules/glfw)
 target_include_directories(${_EXE_NAME_} PUBLIC "submodules/glfw/include")
@@ -31,5 +35,6 @@ add_library(imgui STATIC ${IMGUI_SOURCES})
 target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 target_include_directories(imgui PUBLIC ${IMGUI_DIR}/backends)
 
-target_link_libraries(imgui glfw OpenGL::GL)
-target_link_libraries(${_EXE_NAME_} imgui)
+# link libraries
+target_link_libraries(imgui glfw gl3w)
+target_link_libraries(${_EXE_NAME_} imgui glfw OpenGL::GL gl3w)
