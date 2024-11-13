@@ -4,3 +4,6 @@
 [submodule "submodules/imgui"]
 	path = submodules/imgui
 	url = git@github.com:ocornut/imgui.git
+[submodule "submodules/gl3w"]
+	path = submodules/gl3w
+	url = git@github.com:skaslev/gl3w.git
