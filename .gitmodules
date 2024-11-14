@@ -7,3 +7,6 @@
 [submodule "submodules/gl3w"]
 	path = submodules/gl3w
 	url = git@github.com:skaslev/gl3w.git
+[submodule "submodules/glm"]
+	path = submodules/glm
+	url = git@github.com:g-truc/glm.git
