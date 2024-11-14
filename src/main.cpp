@@ -2,25 +2,14 @@
 #include <memory>
 #include <window/glwindow.hpp>
 #include <obj_loader/obj_loader.hpp>
+#include <rasterizer/rasterizer.hpp>
 
-void draw(const OBJ &obj)
-{
-    std::cout << "Drawing OBJ: " << obj.getFileName() << std::endl;
-}
+const int HEIGHT = 800;
+const int WIDTH = 800;
 int main()
 {
-    int weight = 800;
-    int height = 600;
-    // char *map = new char[weight * height * 3];
-    // auto window = Window(weight, height, "HelloWorld");
-    // window.bindTextureMap(map);
-    // RenderFunc screen = [](char *map, int w, int h)
-    // {
-    //     ImGui::Begin("CharMatrixVisualization");
-    //     ImGui::End();
-    // };
-    // window.setRenderFunc(screen);
-    // window.update();
-
-    auto obj = std::make_unique<OBJLoader>("../assets/teapot.obj")->getOBJ();
+    auto rasterizer = std::make_unique<EzRasterizer>();
+    rasterizer->init(WIDTH, HEIGHT);
+    rasterizer->loadOBJ("../assets/teapot.obj");
+    rasterizer->run();
 }

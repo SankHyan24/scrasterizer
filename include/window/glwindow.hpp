@@ -18,7 +18,7 @@ typedef void (*CalcFunc)(ctx, char *, int w, int h);
 class Window
 {
 public:
-    Window(int width, int height, const char *title)
+    Window(int width, int height, const char *title) : width(width), height(height)
     {
         if (!glfwInit())
         {
@@ -30,7 +30,7 @@ public:
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        window = glfwCreateWindow(width, height, title, NULL, NULL);
+        window = glfwCreateWindow(width + 40, height + 40, title, NULL, NULL);
         if (!window)
         {
             std::cerr << "Failed to create window" << std::endl;
@@ -59,8 +59,9 @@ public:
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-            renderFunc(textureMap, 800, 600);
+            // renderFunc(textureMap, width, height);
             // Render the texture into the window
+            showTextureMapImgui();
             ImGui::Render();
             glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -73,22 +74,32 @@ public:
     void bindTextureMap(char *textureMap)
     {
         this->textureMap = textureMap;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureMap);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void setRenderFunc(RenderFunc renderFunc)
+    void showTextureMapImgui()
     {
-        this->renderFunc = renderFunc;
+        ImGui::Begin("Image Display");
+        ImGui::Image((ImTextureID)textureID, ImVec2(width, height));
+        ImGui::End();
     }
 
-    void setCalcFunc(CalcFunc calcFunc)
+    void showTextureMap()
     {
-        this->calcFunc = calcFunc;
     }
 
-    GLFWwindow *getWindow()
-    {
-        return window;
-    }
+    void setRenderFunc(RenderFunc renderFunc) { this->renderFunc = renderFunc; }
+
+    void setCalcFunc(CalcFunc calcFunc) { this->calcFunc = calcFunc; }
+
+    GLFWwindow *getWindow() { return window; }
 
 private:
     void SetupImGui()
@@ -98,17 +109,18 @@ private:
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
         (void)io;
-
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
-
         // Setup Platform/Renderer bindings
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 330");
     }
 
     GLFWwindow *window;
+    int width, height;
     char *textureMap;
+    // texture id
+    GLuint textureID;
     RenderFunc renderFunc;
     CalcFunc calcFunc;
 };
