@@ -8,7 +8,7 @@
 class OBJ
 {
 public:
-    OBJ() { std::cout << "OBJ constructor" << std::endl; }
+    OBJ() {}
     ~OBJ() {}
     void setFileName(const std::string &name) { file_name = name; }
     void addVertex(const Vertex &v) { vertices.push_back(v); }

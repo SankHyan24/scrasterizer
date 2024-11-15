@@ -1,8 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <functional>
 #include <GL/gl3w.h>
-
 #include <imgui.h>
 #include <glfw/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
@@ -12,8 +12,8 @@ class Context
 {
 };
 typedef Context *ctx;
-typedef void (*RenderFunc)(char *, int w, int h);
-typedef void (*CalcFunc)(ctx, char *, int w, int h);
+using RenderFunc = std::function<int(void *, int, int)>;
+typedef void (*CalcFunc)(ctx, void *rasterizer, int w, int h);
 
 class Window
 {
@@ -59,7 +59,8 @@ public:
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-            // renderFunc(textureMap, width, height);
+            renderFunc(&width, width, height);
+
             // Render the texture into the window
             showTextureMapImgui();
             ImGui::Render();

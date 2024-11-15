@@ -19,6 +19,17 @@ public:
         __allocMap();
     }
 
+    void clearTextureMap()
+    {
+        memset(textureMap, 0, width * height * 3);
+    }
+
+    void setRandomTextureMap()
+    {
+        for (int i = 0; i < width * height * 3; i++)
+            textureMap[i] = rand() % 256;
+    }
+
     char *getTextureMap() const { return textureMap; }
 
 private:
