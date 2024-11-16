@@ -1,5 +1,12 @@
 #pragma once
 #include <glm/glm.hpp>
+
+namespace SCRA::Config
+{
+    extern const int HEIGHT;
+    extern const int WIDTH;
+}
+
 namespace SCRA::Utils
 {
     glm::mat4 TranslateMatrix(float x, float y, float z);

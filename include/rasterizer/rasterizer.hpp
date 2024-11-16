@@ -16,7 +16,7 @@ public:
     }
     ~Rasterizer() {}
     void init(int width, int height);
-    void run() { window->update(); };
+    void run() { window->run(); };
     virtual void render() = 0; // main render function
     void loadOBJ(const std::string &filename) { scene->addOBJ(filename); }
 

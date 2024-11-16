@@ -3,11 +3,9 @@
 #include <rasterizer/rasterizer.hpp>
 #include <utils.hpp>
 
-const int HEIGHT = 800;
-const int WIDTH = 800;
 int main()
 {
-    auto rasterizer = std::make_unique<EzRasterizer>(WIDTH, HEIGHT);
+    auto rasterizer = std::make_unique<EzRasterizer>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT);
     rasterizer->loadOBJ("../assets/teapot.obj");
 
     rasterizer->implementTransform("teapot.obj", SCRA::Utils::TranslateMatrix(0.0f, -1.5f, 0.0f));

@@ -19,24 +19,33 @@ public:
 
     void init();
 
-    void update();
+    void run();
 
     void bindTextureMap(char *textureMap);
-
-    void showTextureMapImgui();
 
     void setRenderFunc(RenderFunc renderFunc) { this->renderFunc = renderFunc; }
 
     GLFWwindow *getWindow() { return window; }
 
 private:
-    void SetupImGui();
+    void __update();
+    void __showTextureMapImgui();
+    void __setupImGui();
 
+    // Window attributes
     std::string title;
-    GLFWwindow *window;
     int width, height;
+    GLFWwindow *window;
+
+    // Frame Counter
+    double lastTime{0.0}, deltaTime{0.0};
+    int frameCount{0};
+    double fpsNow{0.0};
+
+    // Use to bind texture map
     char *textureMap;
-    // texture id
     GLuint textureID;
+
+    // Render interface
     RenderFunc renderFunc;
 };

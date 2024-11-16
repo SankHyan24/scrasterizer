@@ -1,6 +1,12 @@
 #include <utils.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+namespace SCRA::Config
+{
+    const int HEIGHT = 800;
+    const int WIDTH = 800;
+}
+
 namespace SCRA::Utils
 {
     glm::mat4 TranslateMatrix(float x, float y, float z)
