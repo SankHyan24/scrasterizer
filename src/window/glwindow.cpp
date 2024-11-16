@@ -34,6 +34,8 @@ void Window::init()
     gl3wInit();
 
     __setupImGui();
+
+    // sc
 }
 
 void Window::run()
@@ -43,13 +45,12 @@ void Window::run()
         glfwPollEvents();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        glClear(GL_COLOR_BUFFER_BIT);
         ImGui::NewFrame();
 
         __update();
         ImGui::Render();
-
-        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-        glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
@@ -66,11 +67,8 @@ void Window::__update()
         frameCount = 0;
         lastTime = currentTime;
     }
-
-    // Our Render function
-    renderFunc(&width, width, height);
-    // Render the texture into the window
-    __showTextureMapImgui();
+    if (!renderFunc())           // Our Render function
+        __showTextureMapImgui(); // Render the texture into the window
 }
 
 void Window::bindTextureMap(char *textureMap)
@@ -109,4 +107,11 @@ void Window::__setupImGui()
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
+}
+
+//
+
+void Window::__showWindow()
+{
+    // 负责绘制窗口内容，而不是imgui
 }

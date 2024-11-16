@@ -3,12 +3,13 @@
 #include <string>
 #include <iostream>
 
-#include <obj_loader/core.hpp>
-
+#include <obj_loader/objtype.hpp>
+#include <GL/gl3w.h>
+#include <glm/glm.hpp>
 class OBJ
 {
 public:
-    OBJ() {}
+    OBJ() { vertices.push_back(Vertex(0.0f, 0.0f, 0.0f)); }
     ~OBJ() {}
     void setFileName(const std::string &name) { file_name = name; }
     void addVertex(const Vertex &v) { vertices.push_back(v); }
@@ -43,10 +44,50 @@ public:
         }
     }
 
+    void bindGPU()
+    {
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+        // Uint *data = new Uint[faces.size() * 3];
+
+        auto data = std::unique_ptr<Uint[]>(new Uint[faces.size() * 3]);
+        for (int i = 0; i < faces.size(); i++)
+        {
+            data[i * 3] = faces[i].v0;
+            data[i * 3 + 1] = faces[i].v1;
+            data[i * 3 + 2] = faces[i].v2;
+        }
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(Uint) * 3, data.get(), GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+        glEnableVertexAttribArray(0);
+
+        glBindVertexArray(0);
+    }
+
+    void drawGPU()
+    {
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, 0);
+    }
+
 private:
     std::string file_name;
     std::vector<Vertex> vertices;
     std::vector<Normal> normals;
     std::vector<TexutreUV> uvs;
     std::vector<Face> faces;
+
+    // gpu
+    unsigned int VBO, VAO, EBO;
+    bool active{true};
 };

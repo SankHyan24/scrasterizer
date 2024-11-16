@@ -6,7 +6,7 @@
 int main()
 {
     auto rasterizer = std::make_unique<EzRasterizer>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT);
-    rasterizer->loadOBJ("../assets/teapot.obj");
+    rasterizer->loadOBJ("../assets/teapot.obj", "basic");
 
     rasterizer->implementTransform("teapot.obj", SCRA::Utils::TranslateMatrix(0.0f, -1.5f, 0.0f));
     rasterizer->implementTransform("teapot.obj", SCRA::Utils::RotateMatrix(0.0f, 0.0f, 0.0f));

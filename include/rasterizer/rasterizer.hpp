@@ -10,20 +10,23 @@ class Rasterizer
 {
 public:
     Rasterizer() {}
-    Rasterizer(int width, int height)
+    Rasterizer(int width, int height, bool isGPU = true) : isGPU(isGPU)
     {
         init(width, height);
     }
     ~Rasterizer() {}
+
     void init(int width, int height);
-    void run() { window->run(); };
-    virtual void render() = 0; // main render function
-    void loadOBJ(const std::string &filename) { scene->addOBJ(filename); }
+    void run()
+    {
+        if (isGPU)
+            scene->bindGPU();
+        window->run();
+    };
+    virtual void render() = 0;    // main render function
+    virtual void renderGPU() = 0; // main render function
 
-    Canvas &getCanvas() { return *canvas; }
-    Scene &getScene() { return *scene; }
-    Window &getWindow() { return *window; }
-
+    void loadOBJ(const std::string &filename, const std::string &shadername) { scene->addOBJ(filename); }
     void setCamera(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up)
     {
         scene->getCameraV().updateCamera(position, target, up);
@@ -63,7 +66,6 @@ protected:
         auto &camera = scene->getCameraV();
         camera.movePosition(glm::vec3(dx, camera.getPosition().y, dz) - camera.getPosition());
     }
-
     void drawCoordinateAxis()
     {
         // 绘制3d坐标轴，只绘制正半轴
@@ -90,7 +92,6 @@ protected:
         auto p5z = glm::vec3(viewProjectionMatrix * glm::vec4(p5.x, p5.y, p5.z, 1.0f));
         drawLine(glm::vec2(p4z.x, p4z.y), glm::vec2(p5z.x, p5z.y), 0, 0, 255);
     }
-
     void drawLine(const glm::vec2 &p0, const glm::vec2 &p1, char r = 255, char g = 255, char b = 255)
     {
         auto textureMap = canvas->getTextureMap();
@@ -133,7 +134,6 @@ protected:
             }
         }
     }
-
     void drawTriangle(const glm::vec3 &v0, const glm::vec3 &v1, const glm::vec3 &v2)
     {
         drawLine(glm::vec2(v0.x, v0.y), glm::vec2(v1.x, v1.y));
@@ -141,6 +141,10 @@ protected:
         drawLine(glm::vec2(v2.x, v2.y), glm::vec2(v0.x, v0.y));
     }
 
+    // GPU
+    bool isGPU{false};
+
+    //
     int width, height;
     const std::string class_name = "Rasterizer";
     std::unique_ptr<Scene> scene;
@@ -157,7 +161,6 @@ public:
     // ~EzRasterizer() {}
     void render() override
     {
-        // std::cout << "EzRasterizer render" << std::endl;
         auto &objs = scene->objs;
         autoRotateCamera();
         drawCoordinateAxis();
@@ -169,15 +172,22 @@ public:
             auto faces = obj->getFaces();
             for (auto &face : faces)
             {
-                auto v0 = vertices[face.v0 - 1];
-                auto v1 = vertices[face.v1 - 1];
-                auto v2 = vertices[face.v2 - 1];
+                auto v0 = vertices[face.v0];
+                auto v1 = vertices[face.v1];
+                auto v2 = vertices[face.v2];
                 auto p0 = glm::vec3(viewProjectionMatrix * glm::vec4(v0.x, v0.y, v0.z, 1.0f));
                 auto p1 = glm::vec3(viewProjectionMatrix * glm::vec4(v1.x, v1.y, v1.z, 1.0f));
                 auto p2 = glm::vec3(viewProjectionMatrix * glm::vec4(v2.x, v2.y, v2.z, 1.0f));
                 drawTriangle(p0, p1, p2);
             }
         }
+    }
+
+    void renderGPU() override
+    {
+        // use opengl to render
+        // set camera
+        scene->drawGPU();
     }
 
 private:

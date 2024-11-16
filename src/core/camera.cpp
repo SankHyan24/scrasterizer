@@ -1,4 +1,4 @@
-#include <camera/camera.hpp>
+#include <core/camera.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 void Camera::updateCamera(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up)

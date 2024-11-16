@@ -2,7 +2,7 @@
 #include <memory>
 #include <string>
 
-#include <obj_loader/core.hpp>
+#include <obj_loader/objtype.hpp>
 #include <obj_loader/obj.hpp>
 
 // paser obj file

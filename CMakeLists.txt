@@ -25,4 +25,13 @@ add_subdirectory(${_SRC_FILE_NAME_})
 add_subdirectory(submodules)
 
 # copy ./assets folder to the build directory
-file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
+# file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
+# file(COPY shaders DESTINATION ${CMAKE_BINARY_DIR})
+
+# copy before build
+add_custom_command(TARGET ${_EXE_NAME_} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${_EXE_NAME_}>/assets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:${_EXE_NAME_}>/shaders
+)

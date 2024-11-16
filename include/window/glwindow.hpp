@@ -8,7 +8,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-using RenderFunc = std::function<int(void *, int, int)>;
+using RenderFunc = std::function<bool()>;
 
 class Window
 {
@@ -25,12 +25,17 @@ public:
 
     void setRenderFunc(RenderFunc renderFunc) { this->renderFunc = renderFunc; }
 
-    GLFWwindow *getWindow() { return window; }
+    // for opengl
+    void setRenderFuncGPU(RenderFunc renderFunc) { this->renderFuncGPU = renderFunc; }
 
 private:
     void __update();
     void __showTextureMapImgui();
     void __setupImGui();
+
+    // for opengl program
+    void __showWindow();
+    // void __showWindow();
 
     // Window attributes
     std::string title;
@@ -48,4 +53,5 @@ private:
 
     // Render interface
     RenderFunc renderFunc;
+    RenderFunc renderFuncGPU;
 };
