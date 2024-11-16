@@ -6,10 +6,12 @@ void Rasterizer::init(int width, int height)
     scene = std::make_unique<Scene>(); // obtain OBJs and camera
     canvas = std::make_unique<Canvas>(width, height);
     window = std::make_unique<Window>(width, height, class_name.c_str());
+    window->init();
     window->bindTextureMap(canvas->getTextureMap());
     RenderFunc screen = [this](void *r, int w, int h)
     {
         int a = 0;
+        canvas->clearTextureMap();
         this->render();
         return a;
     };

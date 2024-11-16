@@ -18,7 +18,7 @@ typedef void (*CalcFunc)(ctx, void *rasterizer, int w, int h);
 class Window
 {
 public:
-    Window(int width, int height, const char *title) : width(width), height(height)
+    Window(int width, int height, const char *title) : width(width), height(height), title(title)
     {
         if (!glfwInit())
         {
@@ -29,8 +29,17 @@ public:
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    }
 
-        window = glfwCreateWindow(width + 40, height + 40, title, NULL, NULL);
+    ~Window()
+    {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+    }
+
+    void init()
+    {
+        window = glfwCreateWindow(width + 40, height + 40, title.c_str(), NULL, NULL);
         if (!window)
         {
             std::cerr << "Failed to create window" << std::endl;
@@ -45,12 +54,6 @@ public:
         SetupImGui();
     }
 
-    ~Window()
-    {
-        glfwDestroyWindow(window);
-        glfwTerminate();
-    }
-
     void update()
     {
         while (!glfwWindowShouldClose(window))
@@ -63,6 +66,7 @@ public:
 
             // Render the texture into the window
             showTextureMapImgui();
+
             ImGui::Render();
             glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -87,6 +91,9 @@ public:
 
     void showTextureMapImgui()
     {
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureMap);
+        glBindTexture(GL_TEXTURE_2D, 0);
         ImGui::Begin("Image Display");
         ImGui::Image((ImTextureID)textureID, ImVec2(width, height));
         ImGui::End();
@@ -117,6 +124,7 @@ private:
         ImGui_ImplOpenGL3_Init("#version 330");
     }
 
+    std::string title;
     GLFWwindow *window;
     int width, height;
     char *textureMap;

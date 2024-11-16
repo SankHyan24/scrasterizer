@@ -65,10 +65,13 @@ void OBJLoader::__parse()
             }
             break;
         case 'f':
+        {
             Face f = __parseFace(line);
             obj->addFace(f);
-            break;
+        }
+        break;
         default:
+
             break;
         }
     }
@@ -109,7 +112,7 @@ Face OBJLoader::__parseFace(const std::string &line)
     VertexIndex v1(-1), v2(-1), v3(-1);
     TextureUVIndex uv1(-1), uv2(-1), uv3(-1);
     NormalIndex n1(-1), n2(-1), n3(-1);
-    ss >> c >> c;
+    ss >> c;
     // v1//n1 or v1/vt1/vn1 or v1/vt1 or v1
     ss >> v1;
     if (ss.peek() == '/')

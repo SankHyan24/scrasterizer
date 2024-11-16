@@ -32,6 +32,9 @@ public:
 
     char *getTextureMap() const { return textureMap; }
 
+    int getWidth() const { return width; }
+    int getHeight() const { return height; }
+
 private:
     void __allocMap()
     {

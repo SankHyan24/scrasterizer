@@ -31,6 +31,18 @@ public:
         std::cout << "Faces:    " << faces.size() << std::endl;
     }
 
+    void implementTransform(const glm::mat4 &transform)
+    {
+        for (auto &v : vertices)
+        {
+            glm::vec4 v4(v.x, v.y, v.z, 1.0f);
+            v4 = transform * v4;
+            v.x = v4.x;
+            v.y = v4.y;
+            v.z = v4.z;
+        }
+    }
+
 private:
     std::string file_name;
     std::vector<Vertex> vertices;

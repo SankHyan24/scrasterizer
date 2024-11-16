@@ -1,14 +1,15 @@
 #pragma once
-
-typedef float Float32;
-typedef int VertexIndex;
-typedef int NormalIndex;
-typedef int TextureUVIndex;
+#include <glm/glm.hpp>
+using Float32 = float;
+using VertexIndex = int;
+using NormalIndex = int;
+using TextureUVIndex = int;
 
 struct Vertex
 {
     Float32 x, y, z;
     Vertex(Float32 x, Float32 y, Float32 z) : x(x), y(y), z(z) {}
+    Vertex(const glm::vec3 &v) : x(v.x), y(v.y), z(v.z) {}
 };
 
 struct Normal
@@ -25,7 +26,16 @@ struct TexutreUV
 
 struct Face
 {
-    VertexIndex v1, v2, v3;
-    TextureUVIndex uv1, uv2, uv3;
-    NormalIndex n1, n2, n3;
+    VertexIndex v0, v1, v2;
+    TextureUVIndex uv0, uv1, uv2;
+    NormalIndex n0, n1, n2;
+    Face(VertexIndex v0, VertexIndex v1, VertexIndex v2,
+         TextureUVIndex uv0, TextureUVIndex uv1, TextureUVIndex uv2,
+         NormalIndex n0, NormalIndex n1, NormalIndex n2)
+        : v0(v0), v1(v1), v2(v2),
+          uv0(uv0), uv1(uv1), uv2(uv2),
+          n0(n0), n1(n1), n2(n2) {}
+    Face() : v0(-1), v1(-1), v2(-1),
+             uv0(-1), uv1(-1), uv2(-1),
+             n0(-1), n1(-1), n2(-1) {}
 };
