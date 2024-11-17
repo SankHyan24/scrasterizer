@@ -23,10 +23,8 @@ public:
 
     void bindTextureMap(char *textureMap);
 
-    void setRenderFunc(RenderFunc renderFunc) { this->renderFunc = renderFunc; }
-
-    // for opengl
-    void setRenderFuncGPU(RenderFunc renderFunc) { this->renderFuncGPU = renderFunc; }
+    void setRenderCallback(RenderFunc renderCallback) { this->renderCallback = renderCallback; }
+    void setRenderInitFunc(RenderFunc renderInitFunc) { this->renderInitFunc = renderInitFunc; }
 
 private:
     void __update();
@@ -35,6 +33,7 @@ private:
 
     // for opengl program
     void __showWindow();
+    void __showFPS();
     // void __showWindow();
 
     // Window attributes
@@ -52,6 +51,9 @@ private:
     GLuint textureID;
 
     // Render interface
-    RenderFunc renderFunc;
-    RenderFunc renderFuncGPU;
+    RenderFunc renderCallback;
+    RenderFunc renderInitFunc;
+
+    // ImGUI config
+    bool show_FPS{true};
 };

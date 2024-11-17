@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <utils.hpp>
+
 class ShaderProgram
 {
 public:
@@ -27,8 +29,8 @@ public:
         if (!success)
         {
             glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-            std::cerr << "ShaderProgram::init vertex shader compilation failed\n"
-                      << infoLog << std::endl;
+            std::cerr << SCRA::Utils::RED_LOG << "ShaderProgram::init vertex shader compilation failed\n"
+                      << infoLog << SCRA::Utils::COLOR_RESET << std::endl;
         }
         GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
         const char *fCode = fragmentCode.c_str();
@@ -38,8 +40,8 @@ public:
         if (!success)
         {
             glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-            std::cerr << "ShaderProgram::init fragment shader compilation failed\n"
-                      << infoLog << std::endl;
+            std::cerr << SCRA::Utils::RED_LOG << "ShaderProgram::init fragment shader compilation failed\n"
+                      << infoLog << SCRA::Utils::COLOR_RESET << std::endl;
         }
         programID = glCreateProgram();
         glAttachShader(programID, vertexShader);
@@ -49,8 +51,8 @@ public:
         if (!success)
         {
             glGetProgramInfoLog(programID, 512, NULL, infoLog);
-            std::cerr << "ShaderProgram::init program linking failed\n"
-                      << infoLog << std::endl;
+            std::cerr << SCRA::Utils::RED_LOG << "ShaderProgram::init program linking failed\n"
+                      << infoLog << SCRA::Utils::COLOR_RESET << std::endl;
         }
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);

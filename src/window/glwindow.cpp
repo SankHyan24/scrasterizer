@@ -39,14 +39,14 @@ void Window::init()
     __setupImGui();
 
     // z-buffer
-
-    // sc
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 }
 
 void Window::run()
 {
-    glEnable(GL_DEPTH_TEST); // 启用深度测试
-    glDepthFunc(GL_LESS);
+    if (renderInitFunc)
+        renderInitFunc();
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -54,10 +54,11 @@ void Window::run()
         ImGui_ImplGlfw_NewFrame();
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        ImGui::NewFrame();
 
+        ImGui::NewFrame();
         __update();
         ImGui::Render();
+
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
@@ -74,8 +75,10 @@ void Window::__update()
         frameCount = 0;
         lastTime = currentTime;
     }
-    if (!renderFunc())           // Our Render function
+    if (!renderCallback())       // Our Render function
         __showTextureMapImgui(); // Render the texture into the window
+    if (show_FPS)
+        __showFPS();
 }
 
 void Window::bindTextureMap(char *textureMap)
@@ -97,7 +100,6 @@ void Window::__showTextureMapImgui()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureMap);
     glBindTexture(GL_TEXTURE_2D, 0);
     ImGui::Begin("Display");
-    ImGui::Text("FPS: %.1f", fpsNow); // 显示当前帧率
     ImGui::Image((ImTextureID)textureID, ImVec2(width, height));
     ImGui::End();
 }
@@ -117,8 +119,13 @@ void Window::__setupImGui()
 }
 
 //
+void Window::__showFPS()
+{
+    ImGui::Begin("FPS");
+    ImGui::Text("%.1f", fpsNow); // 显示当前帧率
+    ImGui::End();
+}
 
 void Window::__showWindow()
 {
-    // 负责绘制窗口内容，而不是imgui
 }

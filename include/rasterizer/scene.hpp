@@ -8,6 +8,7 @@
 class Scene
 {
 public:
+    int width, height;
     // the only camera
     std::unique_ptr<Camera> camera;
     // objs
@@ -17,7 +18,13 @@ public:
     std::vector<std::unique_ptr<ShaderProgram>> programs;
     std::vector<std::vector<int>> program_obj_indices; // program index -> obj indices
 
-    Scene() : camera(std::make_unique<Camera>()) { loadShadersLazy(); }
+    Scene(int width, int height, bool isGPU) : camera(std::make_unique<Camera>()), isGPU(isGPU), width(width), height(height)
+    {
+        if (isGPU)
+        {
+            __loadShadersLazy();
+        }
+    }
     ~Scene() {}
 
     void addOBJ(const std::string &filename, const std::string &shadername = "basic")
@@ -55,20 +62,57 @@ public:
         }
         objs[index]->implementTransform(transform);
     }
+
+    // for GPU buffer
+    void createTexture(const std::string &texture_name)
+    {
+        texture_names.push_back(texture_name);
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        textures.push_back(texture);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + textures.size() - 1, GL_TEXTURE_2D, texture, 0);
+    }
+    void renderToTexture(const std::string &texture_name)
+    {
+        int index = -1;
+        for (int i = 0; i < texture_names.size(); i++)
+            if (texture_names[i] == texture_name)
+            {
+                index = i;
+                break;
+            }
+        if (index == -1)
+        {
+            std::cerr << "Scene::renderToTexture texture name [" << texture_name << "] not found" << std::endl;
+            return;
+        }
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[index], 0);
+    }
+
+    // for GPU render
     void loadShaders()
     {
+        __createFrameBuffer();
         for (auto &program : programs)
+        {
             program->init();
+        }
     }
     void bindGPU()
     { // called before render( in function "run")
         for (auto &obj : objs)
             obj->bindGPU();
-        // bind camera
     }
-
     void drawGPU()
-    { // need to bindGPU first
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+        // need to bindGPU first
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         for (auto &program : programs)
         {
             program->use();
@@ -83,8 +127,50 @@ public:
         }
     }
 
+    void printDebugInfo()
+    {
+        std::cout << "Scene Debug Infomatoin:" << std::endl;
+        std::cout << "\tCamera Info:" << std::endl;
+        std::cout << "\t\tCamera Position: " << camera->getPosition().x << " " << camera->getPosition().y << " " << camera->getPosition().z << std::endl;
+        std::cout << "\t\tCamera Target: " << camera->getTarget().x << " " << camera->getTarget().y << " " << camera->getTarget().z << std::endl;
+
+        // about obj
+        std::cout << "\tLoad " << objs.size() << " objs:" << std::endl;
+        for (auto &obj : objs)
+        {
+            std::cout << "\t\tObj: " << obj->getFileName() << std::endl;
+        }
+
+        for (auto &program : programs)
+        {
+            std::cout << "\tUse program [" << program->programName << "] to render:" << std::endl;
+            if (program_obj_indices[&program - &programs[0]].size() == 0)
+            {
+                std::cout << "\t\tNo obj use this program" << std::endl;
+                continue;
+            }
+            for (auto &index : program_obj_indices[&program - &programs[0]])
+            {
+                std::cout << "\t\tObj: " << obj_filenames[index] << std::endl;
+            }
+        }
+    }
+
 private:
-    void loadShadersLazy()
+    // for gpu
+    bool isGPU{false};
+    GLuint framebuffer;
+    std::vector<GLuint> textures;
+    std::vector<std::string> texture_names;
+
+    void __createFrameBuffer()
+    {
+        // create frame buffer
+        glGenFramebuffers(1, &framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    }
+
+    void __loadShadersLazy()
     {
         std::string shaders_folder_path = "./shaders";
         for (const auto &shader_folder : std::filesystem::directory_iterator(shaders_folder_path))
