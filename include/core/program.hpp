@@ -56,6 +56,20 @@ public:
         glDeleteShader(fragmentShader);
     } // compile and link
     void use() { glUseProgram(programID); }
+    GLuint getProgramID() { return programID; }
+    GLint getUniformLocation(const std::string &name) { return glGetUniformLocation(programID, name.c_str()); }
+    void setUniformMat4(const std::string &name, const glm::mat4 &mat)
+    {
+        glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
+    }
+    void setUniformVec3(const std::string &name, const glm::vec3 &vec)
+    {
+        glUniform3fv(getUniformLocation(name), 1, &vec[0]);
+    }
+    void setUniformVec4(const std::string &name, const glm::vec4 &vec)
+    {
+        glUniform4fv(getUniformLocation(name), 1, &vec[0]);
+    }
 
 private:
     std::string vertexCode;

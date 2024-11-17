@@ -80,6 +80,9 @@ public:
         glDrawElements(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, 0);
     }
 
+    void setModelMatrix(const glm::mat4 &t) { transform = t; }
+    const glm::mat4 &getModelMatrix() const { return transform; }
+
 private:
     std::string file_name;
     std::vector<Vertex> vertices;
@@ -90,4 +93,5 @@ private:
     // gpu
     unsigned int VBO, VAO, EBO;
     bool active{true};
+    glm::mat4 transform{1.0f};
 };

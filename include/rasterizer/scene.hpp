@@ -64,6 +64,7 @@ public:
     { // called before render( in function "run")
         for (auto &obj : objs)
             obj->bindGPU();
+        // bind camera
     }
 
     void drawGPU()
@@ -71,15 +72,21 @@ public:
         for (auto &program : programs)
         {
             program->use();
+            program->setUniformMat4("view", camera->getViewMatrix());
+            program->setUniformMat4("projection", camera->getProjectionMatrix());
+
             for (auto &index : program_obj_indices[&program - &programs[0]])
+            {
+                program->setUniformMat4("model", objs[index]->getModelMatrix());
                 objs[index]->drawGPU();
+            }
         }
     }
 
 private:
     void loadShadersLazy()
     {
-        std::string shaders_folder_path = "../shaders";
+        std::string shaders_folder_path = "./shaders";
         for (const auto &shader_folder : std::filesystem::directory_iterator(shaders_folder_path))
         {
             std::vector<std::string> shader_files;

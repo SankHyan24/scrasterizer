@@ -8,9 +8,11 @@ Window::Window(int width, int height, const char *title) : width(width), height(
         exit(1);
     }
 
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
 }
 
 Window::~Window()
@@ -21,6 +23,7 @@ Window::~Window()
 
 void Window::init()
 {
+
     window = glfwCreateWindow(width + 40, height + 40, title.c_str(), NULL, NULL);
     if (!window)
     {
@@ -35,18 +38,22 @@ void Window::init()
 
     __setupImGui();
 
+    // z-buffer
+
     // sc
 }
 
 void Window::run()
 {
+    glEnable(GL_DEPTH_TEST); // 启用深度测试
+    glDepthFunc(GL_LESS);
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         ImGui::NewFrame();
 
         __update();

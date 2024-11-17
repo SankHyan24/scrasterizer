@@ -158,7 +158,7 @@ public:
     EzRasterizer() : Rasterizer() {}
     EzRasterizer(int width, int height) : Rasterizer(width, height) {}
 
-    // ~EzRasterizer() {}
+    ~EzRasterizer() {}
     void render() override
     {
         auto &objs = scene->objs;
@@ -185,8 +185,7 @@ public:
 
     void renderGPU() override
     {
-        // use opengl to render
-        // set camera
+        autoRotateCamera();
         scene->drawGPU();
     }
 
