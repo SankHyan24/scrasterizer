@@ -46,6 +46,7 @@ public:
 
     void bindGPU()
     {
+        __autoSetVertexNormal();
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
@@ -54,8 +55,6 @@ public:
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-
-        // Uint *data = new Uint[faces.size() * 3];
 
         auto data = std::unique_ptr<Uint[]>(new Uint[faces.size() * 3]);
         for (int i = 0; i < faces.size(); i++)
@@ -70,6 +69,8 @@ public:
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, nx));
+        glEnableVertexAttribArray(1);
 
         glBindVertexArray(0);
     }
@@ -94,4 +95,17 @@ private:
     unsigned int VBO, VAO, EBO;
     bool active{true};
     glm::mat4 transform{1.0f};
+
+    // utils
+    void __autoSetVertexNormal()
+    {
+        if (normals.size() != vertices.size())
+            return;
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            vertices[i].nx = normals[i].nx;
+            vertices[i].ny = normals[i].ny;
+            vertices[i].nz = normals[i].nz;
+        }
+    }
 };

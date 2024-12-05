@@ -9,6 +9,7 @@ using TextureUVIndex = int;
 struct Vertex
 {
     Float32 x, y, z;
+    Float32 nx, ny, nz;
     Vertex(Float32 x, Float32 y, Float32 z) : x(x), y(y), z(z) {}
     Vertex(const glm::vec3 &v) : x(v.x), y(v.y), z(v.z) {}
 };
@@ -17,6 +18,7 @@ struct Normal
 {
     Float32 nx, ny, nz;
     Normal(Float32 nx, Float32 ny, Float32 nz) : nx(nx), ny(ny), nz(nz) {}
+    Normal() : nx(0.0), ny(0.0), nz(0.0) {}
 };
 
 struct TexutreUV

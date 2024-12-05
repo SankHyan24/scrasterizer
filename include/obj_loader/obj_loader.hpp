@@ -24,4 +24,7 @@ private:
     std::string file_name;
     std::string file_content;
     std::unique_ptr<OBJ> obj;
+
+    // utils
+    void __autoAddNormal();
 };

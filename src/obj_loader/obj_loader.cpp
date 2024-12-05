@@ -8,6 +8,7 @@ OBJLoader::OBJLoader(const char *filename) : obj(std::make_unique<OBJ>())
     file_name = filename;
     __loadFile();
     __parse();
+    __autoAddNormal();
 }
 
 OBJLoader::~OBJLoader()
@@ -159,4 +160,50 @@ Face OBJLoader::__parseFace(const std::string &line)
         }
     }
     return Face{v1, v2, v3, uv1, uv2, uv3, n1, n2, n3};
+}
+
+void OBJLoader::__autoAddNormal()
+{
+    // if no normal, auto add normal
+    bool normal_exist = obj->getNormals().size() > 0;
+    if (normal_exist)
+        return;
+    std::cerr << "Auto add normal" << std::endl;
+    // this is vertex normal, so we need to calculate the weighted normal for each vertex
+    std::vector<Normal> face_normals(obj->getFaces().size());
+    std::vector<double> face_area(obj->getFaces().size(), 0.0);
+    for (int i = 0; i < obj->getFaces().size(); i++)
+    {
+        auto &face = obj->getFaces()[i];
+        auto &v0 = obj->getVertices()[face.v0];
+        auto &v1 = obj->getVertices()[face.v1];
+        auto &v2 = obj->getVertices()[face.v2];
+        glm::vec3 edge1(v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+        glm::vec3 edge2(v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
+        glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+        face_normals[i] = Normal(normal.x, normal.y, normal.z);
+        double area = glm::length(glm::cross(edge1, edge2)) / 2.0;
+        face_area[i] = area;
+    }
+    // calculate vertex normal
+    std::vector<Normal> vertex_normals(obj->getVertices().size());
+    for (int i = 0; i < obj->getVertices().size(); i++)
+    {
+        auto &v = obj->getVertices()[i];
+        glm::vec3 normal(0.0, 0.0, 0.0);
+        for (int j = 0; j < obj->getFaces().size(); j++)
+        {
+            auto &face = obj->getFaces()[j];
+            if (face.v0 == i || face.v1 == i || face.v2 == i)
+            {
+                normal.x += face_normals[j].nx * face_area[j];
+                normal.y += face_normals[j].ny * face_area[j];
+                normal.z += face_normals[j].nz * face_area[j];
+            }
+        }
+        normal = glm::normalize(normal);
+        vertex_normals[i] = Normal(normal.x, normal.y, normal.z);
+    }
+    for (auto &n : vertex_normals)
+        obj->addNormal(n);
 }
