@@ -2,6 +2,8 @@
 
 void Rasterizer::init(int width, int height)
 {
+    this->width = width;
+    this->height = height;
     // create scene, canvas, window
     scene = std::make_unique<Scene>(width, height, isGPU); // to obtain OBJs and camera
     canvas = std::make_unique<Canvas>(width, height);
@@ -10,7 +12,7 @@ void Rasterizer::init(int width, int height)
     if (isGPU)
         scene->loadShaders(); // compile shaders
     else
-        window->bindTextureMap(canvas->getTextureMap());
+        window->bindTextureMap(canvas->getTextureMap()); // use cpu array to render
 
     // set render function
     RenderFunc screen = [this]() -> bool

@@ -3,8 +3,14 @@
 
 namespace SCRA::Config
 {
+    // not fixed
     const int HEIGHT = 800;
     const int WIDTH = 800;
+
+    // fixed
+    const int CS_LOCAL_SIZE_X = 16;
+    const int CS_LOCAL_SIZE_Y = 16;
+    const int CS_LOCAL_SIZE_Z = 1;
 }
 
 namespace SCRA::Utils

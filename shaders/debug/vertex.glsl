@@ -1,14 +1,13 @@
-#version 330 core
+#version 430 core
 
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
-uniform mat4 view; // 视图矩阵
-uniform mat4 projection; // 投影矩阵
-uniform mat4 model; // 模型矩阵
+uniform mat4 view;
+uniform mat4 projection;
+uniform mat4 model;
 out vec3 ourColor;
 out vec2 TexCoords; 
 out vec3 fragNormal;            
-// 
 
 void main()
 {

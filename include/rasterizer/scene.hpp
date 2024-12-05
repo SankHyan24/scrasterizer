@@ -14,12 +14,15 @@ public:
     // objs
     std::vector<std::unique_ptr<OBJ>> objs;
     std::vector<std::string> obj_filenames;
-    // programs
+    // programs for gpu
+    std::vector<GLuint> textures;
+    std::vector<std::string> texture_names;
     std::vector<std::unique_ptr<ShaderProgram>> programs;
     std::vector<std::vector<int>> program_obj_indices; // program index -> obj indices
 
     // compute shader programs
     std::vector<std::unique_ptr<ComputeShaderProgram>> compute_programs;
+    std::vector<std::string> compute_program_names;
 
     Scene(int width, int height, bool isGPU) : camera(std::make_unique<Camera>()), isGPU(isGPU), width(width), height(height)
     {
@@ -79,6 +82,44 @@ public:
         textures.push_back(texture);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + textures.size() - 1, GL_TEXTURE_2D, texture, 0);
     }
+    void bindTexture(const std::string &texture_name)
+    {
+        int index = -1;
+        for (int i = 0; i < texture_names.size(); i++)
+            if (texture_names[i] == texture_name)
+            {
+                index = i;
+                break;
+            }
+        if (index == -1)
+        {
+            std::cerr << SCRA::Utils::RED_LOG
+                      << "Scene::bindTexture texture name [" << texture_name << "] not found"
+                      << SCRA::Utils::COLOR_RESET
+                      << std::endl;
+            return;
+        }
+        glBindTexture(GL_TEXTURE_2D, textures[index]);
+    }
+    void bindImageTexture(const std::string &texture_name, int index)
+    {
+        int texture_index = -1;
+        for (int i = 0; i < texture_names.size(); i++)
+            if (texture_names[i] == texture_name)
+            {
+                texture_index = i;
+                break;
+            }
+        if (texture_index == -1)
+        {
+            std::cerr << SCRA::Utils::RED_LOG
+                      << "Scene::bindImageTexture texture name [" << texture_name << "] not found"
+                      << SCRA::Utils::COLOR_RESET
+                      << std::endl;
+            return;
+        }
+        glBindImageTexture(index, textures[texture_index], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+    }
     void renderToTexture(const std::string &texture_name)
     {
         int index = -1;
@@ -90,7 +131,10 @@ public:
             }
         if (index == -1)
         {
-            std::cerr << "Scene::renderToTexture texture name [" << texture_name << "] not found" << std::endl;
+            std::cerr << SCRA::Utils::RED_LOG
+                      << "Scene::renderToTexture texture name [" << texture_name << "] not found"
+                      << SCRA::Utils::COLOR_RESET
+                      << std::endl;
             return;
         }
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[index], 0);
@@ -132,6 +176,27 @@ public:
         auto compute_shader = std::make_unique<ComputeShaderProgram>("./shaders/" + shadername + "/compute.glsl", shadername);
         compute_shader->init();
         compute_programs.push_back(std::move(compute_shader));
+        compute_program_names.push_back(shadername);
+    }
+    // get compute program reference by name
+    ComputeShaderProgram &getComputeProgram(const std::string &shadername)
+    {
+        int index = -1;
+        for (int i = 0; i < compute_program_names.size(); i++)
+            if (compute_program_names[i] == shadername)
+            {
+                index = i;
+                break;
+            }
+        if (index == -1)
+        {
+            std::cerr << SCRA::Utils::RED_LOG
+                      << "Scene::getComputeProgram compute shader name [" << shadername << "] not found"
+                      << SCRA::Utils::COLOR_RESET
+                      << std::endl;
+            exit(1);
+        }
+        return *compute_programs[index];
     }
     // for debug
     void printDebugInfo()
@@ -167,8 +232,6 @@ private:
     // for gpu
     bool isGPU{false};
     GLuint framebuffer;
-    std::vector<GLuint> textures;
-    std::vector<std::string> texture_names;
 
     void __createFrameBuffer()
     {

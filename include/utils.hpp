@@ -5,6 +5,10 @@ namespace SCRA::Config
 {
     extern const int HEIGHT;
     extern const int WIDTH;
+
+    extern const int CS_LOCAL_SIZE_X;
+    extern const int CS_LOCAL_SIZE_Y;
+    extern const int CS_LOCAL_SIZE_Z;
 }
 
 namespace SCRA::Utils
