@@ -2,6 +2,18 @@
 
 layout (local_size_x = 16, local_size_y = 16) in; 
 
+layout(binding = 0) buffer Vertices {
+    vec2 vertices[]; // 顶点坐标
+};
+
+layout(binding = 1) buffer Edges {
+    uvec2 edges[]; // 边的起点和终点索引
+};
+
+layout(binding = 2) buffer Fill {
+    uint filledPixels[]; // 每个扫描线填充的像素
+};
+
 layout (binding = 0) writeonly uniform image2D imgOutput; 
 
 void main() {

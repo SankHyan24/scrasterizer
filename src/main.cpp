@@ -9,7 +9,7 @@ int main()
     bool isGPU = true;
     // isGPU = false;
     // auto rasterizer = std::make_unique<EzRasterizer>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT, isGPU);
-    auto rasterizer = std::make_unique<Scanline>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT, isGPU);
+    auto rasterizer = std::make_unique<ScanlineRaster>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT, isGPU);
     rasterizer->loadOBJ("./assets/teapot.obj", "debug");
     rasterizer->addComputeShader("debug");
 

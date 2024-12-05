@@ -1,12 +1,12 @@
 #pragma once
 #include <rasterizer/rasterizer.hpp>
 #include <cassert>
-class Scanline : public Rasterizer
+class ScanlineRaster : public Rasterizer
 {
 public:
-    Scanline(int width, int height, bool isGPU = true) : Rasterizer(width, height, isGPU) {}
+    ScanlineRaster(int width, int height, bool isGPU = true) : Rasterizer(width, height, isGPU) {}
 
-    ~Scanline() {}
+    ~ScanlineRaster() {}
     void render() override { assert(false); /*not implemented*/ }
 
     void renderGPU() override
@@ -39,4 +39,9 @@ public:
     }
 
 private:
+    void ScanLinePrecompute()
+    {
+        // precompute the scanline
+        std::vector<float> intersections;
+    }
 };
