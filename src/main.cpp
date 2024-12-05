@@ -8,9 +8,10 @@ int main()
 {
     bool isGPU = true;
     // isGPU = false;
-    // auto rasterizer = std::make_unique<Scanline>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT, isGPU);
-    auto rasterizer = std::make_unique<EzRasterizer>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT, isGPU);
+    auto rasterizer = std::make_unique<Scanline>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT, isGPU);
+    // auto rasterizer = std::make_unique<EzRasterizer>(SCRA::Config::WIDTH, SCRA::Config::HEIGHT, isGPU);
     rasterizer->loadOBJ("./assets/teapot.obj", "debug");
+    rasterizer->addComputeShader("debug");
 
     if (isGPU)
         rasterizer->setCamera(glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // gpu version

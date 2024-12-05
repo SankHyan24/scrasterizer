@@ -18,6 +18,9 @@ public:
     std::vector<std::unique_ptr<ShaderProgram>> programs;
     std::vector<std::vector<int>> program_obj_indices; // program index -> obj indices
 
+    // compute shader programs
+    std::vector<std::unique_ptr<ComputeShaderProgram>> compute_programs;
+
     Scene(int width, int height, bool isGPU) : camera(std::make_unique<Camera>()), isGPU(isGPU), width(width), height(height)
     {
         if (isGPU)
@@ -98,9 +101,7 @@ public:
     {
         __createFrameBuffer();
         for (auto &program : programs)
-        {
             program->init();
-        }
     }
     void bindGPU()
     { // called before render( in function "run")
@@ -126,7 +127,13 @@ public:
             }
         }
     }
-
+    void addComputeShader(const std::string &shadername)
+    {
+        auto compute_shader = std::make_unique<ComputeShaderProgram>("./shaders/" + shadername + "/compute.glsl", shadername);
+        compute_shader->init();
+        compute_programs.push_back(std::move(compute_shader));
+    }
+    // for debug
     void printDebugInfo()
     {
         std::cout << "Scene Debug Infomatoin:" << std::endl;

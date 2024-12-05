@@ -25,6 +25,9 @@ public:
     void implementTransform(std::string file_name, const glm::mat4 &transform);
     void implementTransform(int index, const glm::mat4 &transform) { scene->transformObj(index, transform); }
 
+    // others
+    void addComputeShader(const std::string &shadername) { scene->addComputeShader(shadername); }
+
 protected:
     void _autoRotateCamera(float v = 1.0f);
     void _drawCoordinateAxis();

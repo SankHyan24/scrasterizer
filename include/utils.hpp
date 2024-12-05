@@ -10,6 +10,7 @@ namespace SCRA::Config
 namespace SCRA::Utils
 {
     const std::string RED_LOG = "\033[1;31m";
+    const std::string GREEN_LOG = "\033[1;32m";
     const std::string COLOR_RESET = "\033[0m";
 
     glm::mat4 TranslateMatrix(float x, float y, float z);
