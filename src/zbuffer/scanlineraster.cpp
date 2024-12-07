@@ -14,7 +14,7 @@ void ScanlineRaster::renderGPU()
 {
     _autoRotateCamera();
     {
-        auto program = scene->getComputeProgram("debug");
+        auto program = scene->getComputeProgram("scanline");
         program.use();
         __ScanLinePreCompute();
         glDispatchCompute(this->width / SCRA::Config::CS_LOCAL_SIZE_X, this->height / SCRA::Config::CS_LOCAL_SIZE_Y, 1);
@@ -29,11 +29,12 @@ int ScanlineRaster::renderInit()
     glDisable(GL_DEPTH_TEST);
 
     // use compute program to render
+    this->addComputeShader("scanline");
     scene->createTexture("imgOutput");
 
     // bind texture to shader
     {
-        auto program = scene->getComputeProgram("debug");
+        auto program = scene->getComputeProgram("scanline");
         program.use();
         scene->bindImageTexture("imgOutput", 0);
         __ScanLinePreInit();
