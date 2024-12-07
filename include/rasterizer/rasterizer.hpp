@@ -68,10 +68,13 @@ public:
                 auto v0 = vertices[face.v0];
                 auto v1 = vertices[face.v1];
                 auto v2 = vertices[face.v2];
-                auto p0 = glm::vec3(viewProjectionMatrix * glm::vec4(v0.x, v0.y, v0.z, 1.0f));
-                auto p1 = glm::vec3(viewProjectionMatrix * glm::vec4(v1.x, v1.y, v1.z, 1.0f));
-                auto p2 = glm::vec3(viewProjectionMatrix * glm::vec4(v2.x, v2.y, v2.z, 1.0f));
-                _drawTriangle(p0, p1, p2);
+                auto p0 = glm::vec4(viewProjectionMatrix * glm::vec4(v0.x, v0.y, v0.z, 1.0f));
+                p0 = p0 / p0.w;
+                auto p1 = glm::vec4(viewProjectionMatrix * glm::vec4(v1.x, v1.y, v1.z, 1.0f));
+                p1 = p1 / p1.w;
+                auto p2 = glm::vec4(viewProjectionMatrix * glm::vec4(v2.x, v2.y, v2.z, 1.0f));
+                p2 = p2 / p2.w;
+                _drawTriangle(glm::vec3(p0), glm::vec3(p1), glm::vec3(p2));
             }
         }
     }

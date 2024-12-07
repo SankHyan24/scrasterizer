@@ -81,7 +81,11 @@ public:
         glDrawElements(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, 0);
     }
 
-    void setModelMatrix(const glm::mat4 &t) { transform = t; }
+    void setModelMatrix(const glm::mat4 &t)
+    {
+        transform = t;
+        assert(-1);
+    } // not used anymore
     const glm::mat4 &getModelMatrix() const { return transform; }
 
 private:

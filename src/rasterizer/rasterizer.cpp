@@ -50,6 +50,7 @@ void Rasterizer::run()
 
 void Rasterizer::implementTransform(std::string file_name, const glm::mat4 &transform)
 {
+    // Translate, Rotate, Scale
     int index = -1;
     for (int i = 0; i < scene->obj_filenames.size(); i++)
         if (scene->obj_filenames[i] == file_name)
@@ -88,21 +89,33 @@ void Rasterizer::_drawCoordinateAxis()
     auto viewProjectionMatrix = camera.getViewProjectionMatrix();
     // x axis
     auto p0 = glm::vec3(0.0f, 0.0f, 0.0f);
-    auto p1 = glm::vec3(100.0f, 0.0f, 0.0f);
-    auto p0x = glm::vec3(viewProjectionMatrix * glm::vec4(p0.x, p0.y, p0.z, 1.0f));
-    auto p1x = glm::vec3(viewProjectionMatrix * glm::vec4(p1.x, p1.y, p1.z, 1.0f));
+    auto p1 = glm::vec3(1.0f, 0.0f, 0.0f);
+    auto p0x = glm::vec4(viewProjectionMatrix * glm::vec4(p0.x, p0.y, p0.z, 1.0f));
+    p0x.x = p0x.x / p0x.w;
+    p0x.y = p0x.y / p0x.w;
+    auto p1x = glm::vec4(viewProjectionMatrix * glm::vec4(p1.x, p1.y, p1.z, 1.0f));
+    p1x.x = p1x.x / p1x.w;
+    p1x.y = p1x.y / p1x.w;
     _drawLine(glm::vec2(p0x.x, p0x.y), glm::vec2(p1x.x, p1x.y), 255, 0, 0);
     // y axis
     auto p2 = glm::vec3(0.0f, 0.0f, 0.0f);
-    auto p3 = glm::vec3(0.0f, 100.0f, 0.0f);
-    auto p2y = glm::vec3(viewProjectionMatrix * glm::vec4(p2.x, p2.y, p2.z, 1.0f));
-    auto p3y = glm::vec3(viewProjectionMatrix * glm::vec4(p3.x, p3.y, p3.z, 1.0f));
+    auto p3 = glm::vec3(0.0f, 1.0f, 0.0f);
+    auto p2y = glm::vec4(viewProjectionMatrix * glm::vec4(p2.x, p2.y, p2.z, 1.0f));
+    p2y.x = p2y.x / p2y.w;
+    p2y.y = p2y.y / p2y.w;
+    auto p3y = glm::vec4(viewProjectionMatrix * glm::vec4(p3.x, p3.y, p3.z, 1.0f));
+    p3y.x = p3y.x / p3y.w;
+    p3y.y = p3y.y / p3y.w;
     _drawLine(glm::vec2(p2y.x, p2y.y), glm::vec2(p3y.x, p3y.y), 0, 255, 0);
     // z axis
     auto p4 = glm::vec3(0.0f, 0.0f, 0.0f);
-    auto p5 = glm::vec3(0.0f, 0.0f, 100.0f);
-    auto p4z = glm::vec3(viewProjectionMatrix * glm::vec4(p4.x, p4.y, p4.z, 1.0f));
-    auto p5z = glm::vec3(viewProjectionMatrix * glm::vec4(p5.x, p5.y, p5.z, 1.0f));
+    auto p5 = glm::vec3(0.0f, 0.0f, 1.0f);
+    auto p4z = glm::vec4(viewProjectionMatrix * glm::vec4(p4.x, p4.y, p4.z, 1.0f));
+    p4z.x = p4z.x / p4z.w;
+    p4z.y = p4z.y / p4z.w;
+    auto p5z = glm::vec4(viewProjectionMatrix * glm::vec4(p5.x, p5.y, p5.z, 1.0f));
+    p5z.x = p5z.x / p5z.w;
+    p5z.y = p5z.y / p5z.w;
     _drawLine(glm::vec2(p4z.x, p4z.y), glm::vec2(p5z.x, p5z.y), 0, 0, 255);
 }
 
@@ -129,9 +142,13 @@ void Rasterizer::_drawLine(const glm::vec2 &p0, const glm::vec2 &p1, char r, cha
     {
         if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height)
         {
-            textureMap[(y0 * width + x0) * 3] = r;
-            textureMap[(y0 * width + x0) * 3 + 1] = g;
-            textureMap[(y0 * width + x0) * 3 + 2] = b;
+            // textureMap[(y0 * width + x0) * 3] = r;
+            // textureMap[(y0 * width + x0) * 3 + 1] = g;
+            // textureMap[(y0 * width + x0) * 3 + 2] = b;
+            // in opengl, the origin is at the bottom left corner
+            textureMap[((height - y0 - 1) * width + x0) * 3] = r;
+            textureMap[((height - y0 - 1) * width + x0) * 3 + 1] = g;
+            textureMap[((height - y0 - 1) * width + x0) * 3 + 2] = b;
         }
         if (x0 == x1 && y0 == y1)
             break;
