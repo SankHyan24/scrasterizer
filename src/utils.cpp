@@ -72,4 +72,12 @@ namespace SCRA::Utils
             file << std::endl;
         }
     }
+
+    float encodeCharsToFloat(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+    {
+        unsigned char chars[4] = {r, g, b, a};
+        float result;
+        memcpy(&result, chars, sizeof(float));
+        return result;
+    }
 }

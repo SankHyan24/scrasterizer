@@ -1,11 +1,12 @@
 #pragma once
 #include <glm/glm.hpp>
+
 using Float32 = float;
 using Uint = unsigned int;
 using VertexIndex = int;
 using NormalIndex = int;
 using TextureUVIndex = int;
-
+using Uchar = unsigned char;
 struct Vertex
 {
     Float32 x, y, z;

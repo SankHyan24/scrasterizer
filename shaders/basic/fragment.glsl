@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 uniform sampler2D depthBuffer; 
 in vec3 ourColor;

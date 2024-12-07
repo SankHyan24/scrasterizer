@@ -29,4 +29,6 @@ namespace SCRA::Utils
 
     void saveAsPPM(char *RGB, int width, int height, std::string target_file_name);
     void saveAsText(float *value, int width, int height, std::string target_file_name);
+
+    float encodeCharsToFloat(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 }

@@ -52,7 +52,7 @@ void Window::run()
         glfwPollEvents();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
-        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        // glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         ImGui::NewFrame();
