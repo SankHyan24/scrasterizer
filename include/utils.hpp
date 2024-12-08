@@ -31,4 +31,5 @@ namespace SCRA::Utils
     void saveAsText(float *value, int width, int height, std::string target_file_name);
 
     float encodeCharsToFloat(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+    void decodeFloatToRGBA(float value, unsigned char &r, unsigned char &g, unsigned char &b, unsigned char &a);
 }

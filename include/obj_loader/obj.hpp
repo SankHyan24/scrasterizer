@@ -43,10 +43,13 @@ public:
             v.z = v4.z;
         }
     }
-
-    void bindGPU()
+    void autoSetVertexNormal()
     {
         __autoSetVertexNormal();
+    }
+    void bindGPU()
+    {
+        // __autoSetVertexNormal();
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);

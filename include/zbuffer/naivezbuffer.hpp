@@ -21,6 +21,8 @@ public:
     }
     int renderInit() override
     {
+        // disable depth test
+        glDisable(GL_DEPTH_TEST);
         return 1;
     }
 

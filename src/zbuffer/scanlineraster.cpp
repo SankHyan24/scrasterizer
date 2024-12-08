@@ -10,6 +10,22 @@ ScanlineRaster::~ScanlineRaster()
     delete[] zBufferPrecompute;
 }
 
+void ScanlineRaster::render()
+{
+    _autoRotateCamera();
+    auto textureMap = canvas->getTextureMap();
+    __ScanLinePreCompute();
+    for (int i = 0; i < width * height; i++)
+    { // if textureMap is not zero
+        unsigned char r, g, b, a;
+        SCRA::Utils::decodeFloatToRGBA(zBufferPrecompute[i], r, g, b, a);
+        textureMap[i * 3] = r;
+        textureMap[i * 3 + 1] = g;
+        textureMap[i * 3 + 2] = b;
+    }
+    _drawCoordinateAxis();
+}
+
 void ScanlineRaster::renderGPU()
 {
     _autoRotateCamera();
@@ -26,15 +42,16 @@ void ScanlineRaster::renderGPU()
 
 int ScanlineRaster::renderInit()
 {
-    // disable depth test
-    glDisable(GL_DEPTH_TEST);
-
-    // use compute program to render
-    this->addComputeShader("scanline");
-    scene->createTexture("imgOutput");
-
-    // bind texture to shader
+    if (isGPU)
     {
+        // disable depth test
+        glDisable(GL_DEPTH_TEST);
+
+        // use compute program to render
+        this->addComputeShader("scanline");
+        scene->createTexture("imgOutput");
+
+        // bind texture to shader
         auto program = scene->getComputeProgram("scanline");
         program.use();
         scene->bindImageTexture("imgOutput", 0);
@@ -57,14 +74,14 @@ void ScanlineRaster::__ScanLinePreCompute()
     scanline->init();
     for (auto &obj : scene->objs)
         scanline->buildTable(*obj, scene->getCameraV());
-    // scanline->buildTable(*scene->objs[0], scene->getCameraV());
     scanline->scanScreen();
 
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, width * height * sizeof(float), zBufferPrecompute);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    // __ScanLinePreDebug();
+    if (isGPU)
+    {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, width * height * sizeof(float), zBufferPrecompute);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    }
 }
 
 void ScanlineRaster::__ScanLinePreDebug()

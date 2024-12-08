@@ -80,4 +80,14 @@ namespace SCRA::Utils
         memcpy(&result, chars, sizeof(float));
         return result;
     }
+
+    void decodeFloatToRGBA(float value, unsigned char &r, unsigned char &g, unsigned char &b, unsigned char &a)
+    {
+        unsigned char chars[4];
+        memcpy(chars, &value, sizeof(float));
+        r = chars[0];
+        g = chars[1];
+        b = chars[2];
+        a = chars[3];
+    }
 }

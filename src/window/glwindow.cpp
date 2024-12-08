@@ -96,6 +96,15 @@ void Window::bindTextureMap(char *textureMap)
 
 void Window::__showTextureMapImgui()
 {
+    auto textureMap_ = new char[width * height * 3];
+    for (int i = 0; i < height; i++)
+    {
+        int y = height - i - 1;
+        memcpy(textureMap_ + y * width * 3, textureMap + i * width * 3, width * 3);
+    }
+    memcpy(textureMap, textureMap_, width * height * 3);
+    delete[] textureMap_;
+
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureMap);
     glBindTexture(GL_TEXTURE_2D, 0);

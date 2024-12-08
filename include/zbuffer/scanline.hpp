@@ -58,7 +58,7 @@ public:
     ScanlineRaster(int width, int height, bool isGPU = true);
     ~ScanlineRaster();
 
-    void render() override { assert(false); /*cpu not implemented*/ }
+    void render() override;
     void renderGPU() override;
     int renderInit() override;
 

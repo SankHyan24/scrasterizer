@@ -141,10 +141,9 @@ void Rasterizer::_drawLine(const glm::vec2 &p0, const glm::vec2 &p1, char r, cha
     {
         if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height)
         {
-            // in opengl, the origin is at the bottom left corner
-            textureMap[((height - y0 - 1) * width + x0) * 3] = r;
-            textureMap[((height - y0 - 1) * width + x0) * 3 + 1] = g;
-            textureMap[((height - y0 - 1) * width + x0) * 3 + 2] = b;
+            textureMap[(y0 * width + x0) * 3] = r;
+            textureMap[(y0 * width + x0) * 3 + 1] = g;
+            textureMap[(y0 * width + x0) * 3 + 2] = b;
         }
         if (x0 == x1 && y0 == y1)
             break;

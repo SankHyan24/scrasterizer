@@ -206,4 +206,5 @@ void OBJLoader::__autoAddNormal()
     }
     for (auto &n : vertex_normals)
         obj->addNormal(n);
+    obj->autoSetVertexNormal();
 }

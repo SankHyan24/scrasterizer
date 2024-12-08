@@ -136,9 +136,11 @@ void Scanline::scanScreen()
                 if (zBuffer[y * width + x] > zStart) // depth test
                 {
                     zBuffer[y * width + x] = zStart;
-                    int r_ = std::round(rStart * 255);
-                    int g_ = std::round(gStart * 255);
-                    int b_ = std::round(bStart * 255);
+                    // normalize the color
+                    float dist = std::sqrt(rStart * rStart + gStart * gStart + bStart * bStart);
+                    int r_ = std::round(rStart / dist * 255);
+                    int g_ = std::round(gStart / dist * 255);
+                    int b_ = std::round(bStart / dist * 255);
                     Uchar rc = r_ > 255 ? 255 : (r_ < 0 ? 0 : r_);
                     Uchar gc = g_ > 255 ? 255 : (g_ < 0 ? 0 : g_);
                     Uchar bc = b_ > 255 ? 255 : (b_ < 0 ? 0 : b_);
@@ -203,4 +205,3 @@ int Scanline::__findNextSamePolyEdge(int pId)
     assert(false && "edge not paired correctly");
     return -1;
 }
-
