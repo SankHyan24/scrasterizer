@@ -21,6 +21,7 @@ void ScanlineRaster::renderGPU()
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     }
     scene->drawGPU();
+    scene->clearImageTexture("imgOutput");
 }
 
 int ScanlineRaster::renderInit()

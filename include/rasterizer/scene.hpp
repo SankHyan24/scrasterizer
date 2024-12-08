@@ -42,6 +42,7 @@ public:
     void bindTexture(const std::string &texture_name);
     void bindImageTexture(const std::string &texture_name, int index);
     void renderToTexture(const std::string &texture_name);
+    void clearImageTexture(const std::string &texture_name);
 
     // for GPU render
     void loadShaders();

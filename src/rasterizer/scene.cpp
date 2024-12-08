@@ -117,6 +117,27 @@ void Scene::renderToTexture(const std::string &texture_name)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[index], 0);
 }
 
+void Scene::clearImageTexture(const std::string &texture_name)
+{
+    int index = -1;
+    for (int i = 0; i < texture_names.size(); i++)
+        if (texture_names[i] == texture_name)
+        {
+            index = i;
+            break;
+        }
+    if (index == -1)
+    {
+        std::cerr << SCRA::Utils::RED_LOG
+                  << "Scene::clearImageTexture texture name [" << texture_name << "] not found"
+                  << SCRA::Utils::COLOR_RESET
+                  << std::endl;
+        return;
+    }
+    glBindTexture(GL_TEXTURE_2D, textures[index]);
+    glClearTexImage(textures[index], 0, GL_RGB, GL_FLOAT, nullptr);
+}
+
 void Scene::loadShaders()
 {
     __createFrameBuffer();
