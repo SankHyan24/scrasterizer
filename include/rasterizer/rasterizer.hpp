@@ -29,6 +29,8 @@ public:
     void addComputeShader(const std::string &shadername) { scene->addComputeShader(shadername); }
 
 protected:
+    float *zBufferPrecompute{nullptr};
+
     void _autoRotateCamera(float v = 1.0f);
     void _drawCoordinateAxis();
     void _drawLine(const glm::vec2 &p0, const glm::vec2 &p1, char r = 255, char g = 255, char b = 255);

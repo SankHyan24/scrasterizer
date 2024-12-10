@@ -67,7 +67,6 @@ private:
     void __ScanLinePreCompute();
     void __ScanLinePreDebug();
     GLuint ssbo;
-    float *zBufferPrecompute{nullptr};
     std::unique_ptr<Scanline> scanline;
     int debug_count{0};
 };
