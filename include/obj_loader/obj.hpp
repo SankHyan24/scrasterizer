@@ -9,7 +9,7 @@
 class OBJ
 {
 public:
-    OBJ() { vertices.push_back(Vertex(0.0f, 0.0f, 0.0f)); }
+    OBJ() { vertices.push_back(Vertex(0.0f, 0.0f, 0.0f)); /* dummy */ }
     ~OBJ() {}
     void setFileName(const std::string &name) { file_name = name; }
     void addVertex(const Vertex &v) { vertices.push_back(v); }

@@ -4,10 +4,11 @@ void Rasterizer::init(int width, int height)
 {
     this->width = width;
     this->height = height;
+    this->__printHello();
     // create scene, canvas, window
     scene = std::make_unique<Scene>(width, height, isGPU); // to obtain OBJs and camera
     canvas = std::make_unique<Canvas>(width, height);
-    window = std::make_unique<Window>(width, height, class_name.c_str());
+    window = std::make_unique<Window>(width, height);
     window->init(); // opengl, imgui setup
     if (isGPU)
         scene->loadShaders(); // compile shaders
@@ -120,19 +121,22 @@ void Rasterizer::_drawCoordinateAxis()
 
 void Rasterizer::_drawLine(const glm::vec2 &p0, const glm::vec2 &p1, char r, char g, char b)
 {
-    auto textureMap = canvas->getTextureMap();
-    int width = canvas->getWidth();
-    int height = canvas->getHeight();
-
     // from screen space[-1,1] to pixel space
     auto p0x = (p0.x + 1.0f) * 0.5f * width;
     auto p0y = (p0.y + 1.0f) * 0.5f * height;
     auto p1x = (p1.x + 1.0f) * 0.5f * width;
     auto p1y = (p1.y + 1.0f) * 0.5f * height;
+    _drawLineScreenSpace(glm::vec2(p0x, p0y), glm::vec2(p1x, p1y), r, g, b);
+}
+void Rasterizer::_drawLineScreenSpace(const glm::vec2 &p0, const glm::vec2 &p1, char r, char g, char b)
+{
+    auto textureMap = canvas->getTextureMap();
+    int width = canvas->getWidth();
+    int height = canvas->getHeight();
 
     // Bresenham's line algorithm
-    int x0 = p0x, y0 = p0y;
-    int x1 = p1x, y1 = p1y;
+    int x0 = p0.x, y0 = p0.y;
+    int x1 = p1.x, y1 = p1.y;
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     int err = dx + dy, e2;
@@ -166,4 +170,10 @@ void Rasterizer::_drawTriangle(const glm::vec3 &v0, const glm::vec3 &v1, const g
     _drawLine(glm::vec2(v0.x, v0.y), glm::vec2(v1.x, v1.y));
     _drawLine(glm::vec2(v1.x, v1.y), glm::vec2(v2.x, v2.y));
     _drawLine(glm::vec2(v2.x, v2.y), glm::vec2(v0.x, v0.y));
+}
+
+void Rasterizer::__printHello()
+{
+    std::cerr << "Width: " << width << " Height: " << height << std::endl;
+    std::cerr << "Using " << SCRA::Utils::GREEN_LOG << (isGPU ? "GPU" : "CPU") << SCRA::Utils::COLOR_RESET << " mode" << std::endl;
 }

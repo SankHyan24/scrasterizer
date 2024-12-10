@@ -13,7 +13,7 @@ using RenderFunc = std::function<bool()>;
 class Window
 {
 public:
-    Window(int width, int height, const char *title);
+    Window(int width, int height, const char *title = "Rasterizer");
 
     ~Window();
 

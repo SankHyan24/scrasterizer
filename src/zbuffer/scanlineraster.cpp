@@ -96,7 +96,7 @@ void ScanlineRaster::__ScanLinePreDebug()
         color[i * 3 + 1] = zBufferPrecompute[i] * 10;
         color[i * 3 + 2] = zBufferPrecompute[i] * 10;
     }
-    SCRA::Utils::saveAsText(zBufferPrecompute, width, height, "zbuffer.txt");
+    SCRA::Utils::saveAsText(zBufferPrecompute, 1, width, height, "zbuffer.txt");
     SCRA::Utils::saveAsPPM(color, width, height, "zbuffer.ppm");
     delete[] color;
 }

@@ -29,7 +29,8 @@ public:
     Scene(int width, int height, bool isGPU);
     ~Scene();
 
-    void addOBJ(const std::string &filename, const std::string &shadername = "basic");
+    void addOBJ(const std::string &filename, const std::string &shadername);
+    void addOBJ(const std::string &filename);
 
     // get camera
     const Camera &getCamera() { return *camera; }

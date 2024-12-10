@@ -28,7 +28,8 @@ namespace SCRA::Utils
     glm::mat4 ModelMatrix(const glm::vec3 &position, const glm::vec3 &rotation, const glm::vec3 &scale);
 
     void saveAsPPM(char *RGB, int width, int height, std::string target_file_name);
-    void saveAsText(float *value, int width, int height, std::string target_file_name);
+    void saveAsPPM(float *RGB, int width, int height, std::string target_file_name);
+    void saveAsText(float *value, int channel, int width, int height, std::string target_file_name);
 
     float encodeCharsToFloat(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
     void decodeFloatToRGBA(float value, unsigned char &r, unsigned char &g, unsigned char &b, unsigned char &a);

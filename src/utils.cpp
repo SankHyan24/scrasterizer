@@ -60,14 +60,26 @@ namespace SCRA::Utils
         fclose(fp);
     }
 
-    void saveAsText(float *value, int width, int height, std::string target_file_name)
+    void saveAsPPM(float *RGB, int width, int height, std::string target_file_name)
+    {
+        char *RGB_char = new char[width * height * 3];
+        for (int i = 0; i < width * height * 3; i++)
+            RGB_char[i] = (char)(RGB[i] * 255);
+        saveAsPPM(RGB_char, width, height, target_file_name);
+        delete[] RGB_char;
+    }
+
+    void saveAsText(float *value, int channel, int width, int height, std::string target_file_name)
     {
         std::ofstream file(target_file_name);
         for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
             {
-                file << "[" << i << ", " << j << "] = " << value[i * width + j] << std::endl;
+                file << "[" << i << ", " << j << "] = ";
+                for (int c = 0; c < channel; c++)
+                    file << value[(i * width + j) * channel + c] << " ";
+                file << std::endl;
             }
             file << std::endl;
         }

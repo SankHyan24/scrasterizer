@@ -12,6 +12,14 @@ Scene::Scene(int width, int height, bool isGPU) : camera(std::make_unique<Camera
 
 Scene::~Scene() {}
 
+void Scene::addOBJ(const std::string &filename)
+{
+    auto obj = std::make_unique<OBJLoader>(filename.c_str())->getOBJ();
+    obj->printSummary();
+    obj_filenames.push_back(obj->getFileName());
+    objs.push_back(std::move(obj));
+}
+
 void Scene::addOBJ(const std::string &filename, const std::string &shadername)
 {
     auto obj = std::make_unique<OBJLoader>(filename.c_str())->getOBJ();
