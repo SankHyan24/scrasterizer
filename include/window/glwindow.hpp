@@ -13,7 +13,7 @@ using RenderFunc = std::function<bool()>;
 class Window
 {
 public:
-    Window(int width, int height, const char *title = "Rasterizer");
+    Window(int width, int height, bool isGPU, const char *title = "Rasterizer");
 
     ~Window();
 
@@ -25,6 +25,7 @@ public:
 
     void setRenderCallback(RenderFunc renderCallback) { this->renderCallback = renderCallback; }
     void setRenderInitFunc(RenderFunc renderInitFunc) { this->renderInitFunc = renderInitFunc; }
+    void setRenderImGui(RenderFunc renderImGui) { this->renderImGui = renderImGui; }
 
 private:
     void __update();
@@ -32,7 +33,7 @@ private:
     void __setupImGui();
 
     // for opengl program
-    void __showWindow();
+    void __showImGuiSubWindow();
     void __showFPS();
     // void __showWindow();
 
@@ -53,7 +54,8 @@ private:
     // Render interface
     RenderFunc renderCallback;
     RenderFunc renderInitFunc;
+    RenderFunc renderImGui;
 
-    // ImGUI config
     bool show_FPS{true};
+    bool isGPU{true};
 };

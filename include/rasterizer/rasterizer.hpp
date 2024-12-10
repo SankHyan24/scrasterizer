@@ -15,16 +15,16 @@ public:
 
     void init(int width, int height);
     void run();
+
+    // window init interface
+    virtual int renderInit() = 0;
+    // imgui interface
+    virtual int renderImGui() { return 1; };
+    // render interface
     virtual void render() = 0;    // main render function cpu
     virtual void renderGPU() = 0; // main render function opengl
 
-    virtual int renderInit() = 0;
-
-    void loadOBJ(const std::string &filename)
-    {
-        assert(isGPU == false && "You use GPU mode, please use loadOBJ(const std::string &filename, const std::string &shadername) instead!");
-        scene->addOBJ(filename);
-    }
+    void loadOBJ(const std::string &filename);
     void loadOBJ(const std::string &filename, const std::string &shadername) { scene->addOBJ(filename, shadername); }
     void setCamera(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up) { scene->getCameraV().updateCamera(position, target, up); }
     void implementTransform(std::string file_name, const glm::mat4 &transform);
@@ -36,11 +36,18 @@ public:
 protected:
     float *zBufferPrecompute{nullptr};
 
-    void _autoRotateCamera(float v = 1.0f);
+    float autoRotateSpeed{1.0f};
+    void _autoRotateCamera();
+    float horiTheta{0.25f};
+    float horiThetaOld{0.25f};
+    void _setCameraTheta();
     void _drawCoordinateAxis();
     void _drawLine(const glm::vec2 &p0, const glm::vec2 &p1, char r = 255, char g = 255, char b = 255);
     void _drawLineScreenSpace(const glm::vec2 &p0, const glm::vec2 &p1, char r = 255, char g = 255, char b = 255);
     void _drawTriangle(const glm::vec3 &v0, const glm::vec3 &v1, const glm::vec3 &v2);
+
+    void _showCameraInfoInImgui();
+    void _showimguiSubTitle(const std::string &title);
 
     // GPU
     bool isGPU{false};

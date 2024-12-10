@@ -47,6 +47,7 @@ public:
 
     const glm::vec3 &getPosition() const { return position; }
     const glm::vec3 &getTarget() const { return target; }
+    const glm::vec3 &getUp() const { return up; }
 
     void calcDebug();
 

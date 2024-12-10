@@ -1,4 +1,5 @@
 #include <rasterizer/rasterizer.hpp>
+#include <glm/gtc/constants.hpp>
 
 void Rasterizer::init(int width, int height)
 {
@@ -8,7 +9,7 @@ void Rasterizer::init(int width, int height)
     // create scene, canvas, window
     scene = std::make_unique<Scene>(width, height, isGPU); // to obtain OBJs and camera
     canvas = std::make_unique<Canvas>(width, height);
-    window = std::make_unique<Window>(width, height);
+    window = std::make_unique<Window>(width, height, isGPU);
     window->init(); // opengl, imgui setup
     if (isGPU)
         scene->loadShaders(); // compile shaders
@@ -37,6 +38,13 @@ void Rasterizer::init(int width, int height)
         return this->renderInit();
     };
     window->setRenderInitFunc(init);
+
+    // set render imgui function
+    RenderFunc imgui = [this]() -> bool
+    {
+        return this->renderImGui();
+    };
+    window->setRenderImGui(imgui);
 }
 
 void Rasterizer::run()
@@ -67,9 +75,16 @@ void Rasterizer::implementTransform(std::string file_name, const glm::mat4 &tran
     scene->transformObj(index, transform);
 }
 
-void Rasterizer::_autoRotateCamera(float v)
+void Rasterizer::loadOBJ(const std::string &filename)
+{
+    assert(isGPU == false && "You use GPU mode, please use loadOBJ(const std::string &filename, const std::string &shadername) instead!");
+    scene->addOBJ(filename);
+}
+
+void Rasterizer::_autoRotateCamera()
 {
     // rotate camera around target
+    float v = autoRotateSpeed;
     float Dx = scene->getCameraV().getPosition().x - scene->getCameraV().getTarget().x;
     float Dz = scene->getCameraV().getPosition().z - scene->getCameraV().getTarget().z;
     float radius = sqrt(Dx * Dx + Dz * Dz);
@@ -79,6 +94,35 @@ void Rasterizer::_autoRotateCamera(float v)
     float dz = radius * sin(angle);
     auto &camera = scene->getCameraV();
     camera.movePosition(glm::vec3(dx, camera.getPosition().y, dz) - camera.getPosition());
+}
+
+void Rasterizer::_setCameraTheta()
+{
+    // theta is from 0 to 1, now to 0 to 2pi
+    float theta = horiTheta * glm::pi<float>();
+    glm::vec3 camVector(scene->getCameraV().getPosition() - scene->getCameraV().getTarget());
+    float radius = glm::length(camVector);
+    float x = camVector.x; // red axis
+    float y = camVector.y; // green axis
+    float z = camVector.z; // blue axis
+    float new_x, new_y, new_z;
+
+    if (z == 0.0f)
+    {
+        new_x = glm::cos(theta) * radius;
+        new_y = glm::sin(theta) * radius;
+        new_z = 0.0f;
+    }
+    else
+    {
+        float dxdz = x / z;
+        float sqrt_ = sqrt(1 + dxdz * dxdz);
+        new_y = glm::cos(theta) * radius;
+        float new_xz = glm::sin(theta) * radius;
+        new_z = new_xz / sqrt_;
+        new_x = dxdz * new_z;
+    }
+    scene->getCameraV().updateCamera(glm::vec3(new_x, new_y, new_z) + scene->getCameraV().getTarget(), scene->getCameraV().getTarget(), scene->getCameraV().getUp());
 }
 
 void Rasterizer::_drawCoordinateAxis()
@@ -170,6 +214,50 @@ void Rasterizer::_drawTriangle(const glm::vec3 &v0, const glm::vec3 &v1, const g
     _drawLine(glm::vec2(v0.x, v0.y), glm::vec2(v1.x, v1.y));
     _drawLine(glm::vec2(v1.x, v1.y), glm::vec2(v2.x, v2.y));
     _drawLine(glm::vec2(v2.x, v2.y), glm::vec2(v0.x, v0.y));
+}
+
+void Rasterizer::_showCameraInfoInImgui()
+{
+
+    _showimguiSubTitle("Camera Info");
+    auto &camera = scene->getCamera();
+    auto &cameraV = scene->getCameraV();
+    {
+        ImGui::Text("Auto Rotate Speed:");
+        ImGui::SameLine();
+        ImGui::SliderFloat("##slider0", &autoRotateSpeed, 0.0f, 3.0f);
+    }
+    ImGui::Text("Position: (%.2f, %.2f, %.2f)", camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+    ImGui::Text("Target: (%.2f, %.2f, %.2f)", camera.getTarget().x, camera.getTarget().y, camera.getTarget().z);
+    ImGui::Text("Up: (%.2f, %.2f, %.2f)", camera.getUp().x, camera.getUp().y, camera.getUp().z);
+    ImGui::Separator();
+    {
+        // set camera position
+        ImGui::Text("Camera Height:");
+        ImGui::SameLine();
+        ImGui::SliderFloat("##slider1", &horiTheta, 0.001f, 0.999f);
+        if (horiTheta != horiThetaOld)
+        {
+            horiThetaOld = horiTheta;
+            _setCameraTheta();
+        }
+    }
+}
+
+void Rasterizer::_showimguiSubTitle(const std::string &title)
+{
+    ImGui::Separator();
+    ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+    ImVec2 size = ImGui::CalcTextSize(title.c_str());
+
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        cursorPos,
+        ImVec2(cursorPos.x + size.x, cursorPos.y + size.y),
+        IM_COL32(50, 50, 150, 255));
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 105, 255));
+    ImGui::Text(title.c_str());
+    ImGui::PopStyleColor();
+    ImGui::Separator();
 }
 
 void Rasterizer::__printHello()

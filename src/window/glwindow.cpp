@@ -1,6 +1,6 @@
 #include <window/glwindow.hpp>
 
-Window::Window(int width, int height, const char *title) : width(width), height(height), title(title)
+Window::Window(int width, int height, bool isGPU, const char *title) : width(width), height(height), isGPU(isGPU), title(title)
 {
     if (!glfwInit())
     {
@@ -24,7 +24,7 @@ Window::~Window()
 void Window::init()
 {
 
-    window = glfwCreateWindow(width + 40, height + 40, title.c_str(), NULL, NULL);
+    window = glfwCreateWindow(width + (isGPU ? 0 : 520), height + (isGPU ? 0 : 40), title.c_str(), NULL, NULL);
     if (!window)
     {
         std::cerr << "Failed to create window" << std::endl;
@@ -77,8 +77,8 @@ void Window::__update()
     }
     if (!renderCallback())       // Our Render function
         __showTextureMapImgui(); // Render the texture into the window
-    if (show_FPS)
-        __showFPS();
+
+    __showImGuiSubWindow();
 }
 
 void Window::bindTextureMap(char *textureMap)
@@ -108,6 +108,8 @@ void Window::__showTextureMapImgui()
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureMap);
     glBindTexture(GL_TEXTURE_2D, 0);
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(width + 20, height + 40), ImGuiCond_FirstUseEver);
     ImGui::Begin("Display");
     ImGui::Image((ImTextureID)textureID, ImVec2(width, height));
     ImGui::End();
@@ -128,13 +130,20 @@ void Window::__setupImGui()
 }
 
 //
-void Window::__showFPS()
+
+void Window::__showImGuiSubWindow()
 {
-    ImGui::Begin("FPS");
-    ImGui::Text("%.1f", fpsNow); // 显示当前帧率
+    ImGui::SetNextWindowPos(ImVec2(width + 20, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(500, height + 40), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Control Panel");
+    if (show_FPS)
+        __showFPS();
+    if (renderImGui)
+        renderImGui();
     ImGui::End();
 }
 
-void Window::__showWindow()
+void Window::__showFPS()
 {
+    ImGui::Text("FPS: %.1f", fpsNow); // 显示当前帧率
 }

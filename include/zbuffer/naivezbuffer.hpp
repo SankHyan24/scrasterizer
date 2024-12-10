@@ -64,6 +64,11 @@ public:
     void render() override;
     void renderGPU() override { assert(false && "NaiveZBufferRaster GPU Not Implemented!"); }
     int renderInit() override { return 1; }
+    int renderImGui() override
+    {
+        _showCameraInfoInImgui();
+        return 1;
+    }
 
 private:
     void __putColorBuffer2TextureMap();
