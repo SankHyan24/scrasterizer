@@ -94,16 +94,9 @@ void NaiveZBuffer::__fragmentShader()
         culled_face = faces.size() - triangles.size();
 }
 
-bool NaiveZBuffer::__ifPixelInsideTriangle(int x, int y, const Triangle &triangle)
+bool NaiveZBuffer::__ifLambda12InsideTriangle(float l1, float l2)
 {
-    // barycentric coordinate
-    auto &v0 = vertices[triangle.v0];
-    auto &v1 = vertices[triangle.v1];
-    auto &v2 = vertices[triangle.v2];
-    float area = 0.5f * (-v1.y * v2.x + v0.y * (-v1.x + v2.x) + v0.x * (v1.y - v2.y) + v1.x * v2.y);
-    float s = 1 / (2 * area) * (v0.y * v2.x - v0.x * v2.y + (v2.y - v0.y) * x + (v0.x - v2.x) * y);
-    float t = 1 / (2 * area) * (v0.x * v1.y - v0.y * v1.x + (v0.y - v1.y) * x + (v1.x - v0.x) * y);
-    return s >= 0 && t >= 0 && 1 - s - t >= 0;
+    return l1 >= 0 && l2 >= 0 && 1 - l1 - l2 >= 0;
 }
 
 void NaiveZBuffer::__drawTriangle(const Triangle &triangle)
@@ -115,11 +108,12 @@ void NaiveZBuffer::__drawTriangle(const Triangle &triangle)
 #pragma omp parallel for collapse(2)
     for (int x = xStart; x <= xEnd; x++)
         for (int y = yStart; y <= yEnd; y++)
-            if (__ifPixelInsideTriangle(x, y, triangle))
+        {
+            float lambda1, lambda2, lambda3;
+            __ComputeBarycentricCoords(x, y, triangle, lambda2, lambda3);
+            lambda1 = 1 - lambda2 - lambda3;
+            if (__ifLambda12InsideTriangle(lambda1, lambda2))
             {
-                float lambda1, lambda2, lambda3;
-                __ComputeBarycentricCoords(x, y, triangle, lambda2, lambda3);
-                lambda1 = 1 - lambda2 - lambda3;
                 float z = lambda1 * vertices[triangle.v0].z + lambda2 * vertices[triangle.v1].z + lambda3 * vertices[triangle.v2].z;
                 float R = lambda1 * vertices[triangle.v0].nx + lambda2 * vertices[triangle.v1].nx + lambda3 * vertices[triangle.v2].nx;
                 float G = lambda1 * vertices[triangle.v0].ny + lambda2 * vertices[triangle.v1].ny + lambda3 * vertices[triangle.v2].ny;
@@ -133,6 +127,7 @@ void NaiveZBuffer::__drawTriangle(const Triangle &triangle)
                     colorBufferData[(y * width + x) * 3 + 2] = B;
                 }
             }
+        }
 }
 
 void NaiveZBuffer::__drawTriangleFrame(const Triangle &triangle)

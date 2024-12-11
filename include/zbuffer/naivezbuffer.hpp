@@ -49,7 +49,7 @@ private:
     void __drawTriangleBB(const Triangle &triangle);
 
     bool __ifTriangleInScreen(const Triangle &triangle);
-    bool __ifPixelInsideTriangle(int x, int y, const Triangle &triangle);
+    static bool __ifLambda12InsideTriangle(float l1, float l2);
     void __drawLineScreenSpace(const glm::vec2 &p0, const glm::vec2 &p1, float r, float g, float b);
     void __ComputeBarycentricCoords(int x, int y, const Triangle &triangle, float &lambda1, float &lambda2);
 
