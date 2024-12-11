@@ -19,6 +19,10 @@ public:
         Edge(Vertex v0, Vertex v1, int eId);
         bool if_paired{false};
         int eId, pId;
+
+        float xStartFixed, yStartFixed, zStartFixed;
+        float rStartFixed, gStartFixed, bStartFixed;
+        void edgeStepToIntegerY(int integerY);
     };
 
     struct Polygon
@@ -32,6 +36,9 @@ public:
     using EdgeTable = std::vector<Edge>;
     using EdgeIdTable = std::vector<int>;
 
+    int obj_vertex_offset{0}; // for each obj, the offset of vertices
+    int obj_face_offset{0};   // for each obj, the offset of vertices
+    std::vector<Vertex> vertices;
     EdgeTable TotalEdgeTable;
     EdgeTable activeEdgeTable;
     std::vector<EdgeIdTable> activeTable;   // for each scanline, the edges to be added to the active edge table

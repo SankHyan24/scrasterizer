@@ -18,6 +18,24 @@ Scanline::Edge::Edge(Vertex v0, Vertex v1, int eId) : eId(eId)
     rSlope = (rEnd - rStart) / (yMax - yMin);
     gSlope = (gEnd - gStart) / (yMax - yMin);
     bSlope = (bEnd - bStart) / (yMax - yMin);
+
+    xStartFixed = xStart;
+    yStartFixed = yMin;
+    zStartFixed = zStart;
+    rStartFixed = rStart;
+    gStartFixed = gStart;
+    bStartFixed = bStart;
+}
+
+void Scanline::Edge::edgeStepToIntegerY(int integerY)
+{
+    float integer_f = (float)integerY;
+    float delta0_1 = (integer_f - yStartFixed) / (yMax - yStartFixed);
+    xStart = xStartFixed + delta0_1 * (xEnd - xStartFixed);
+    zStart = zStartFixed + delta0_1 * (zEnd - zStartFixed);
+    rStart = rStartFixed + delta0_1 * (rEnd - rStart);
+    gStart = gStartFixed + delta0_1 * (gEnd - gStart);
+    bStart = bStartFixed + delta0_1 * (bEnd - bStart);
 }
 
 Scanline::Scanline(int width, int height) : width(width), height(height)
@@ -32,6 +50,9 @@ void Scanline::init()
     deactiveTable.clear();
     activeTable.resize(height);
     deactiveTable.resize(height);
+    obj_face_offset = 0;
+    obj_vertex_offset = 0;
+    vertices.clear();
     std::fill(zBuffer.begin(), zBuffer.end(), std::numeric_limits<float>::infinity());
     std::fill(zBufferData, zBufferData + width * height, 0);
 }
@@ -40,9 +61,10 @@ void Scanline::buildTable(OBJ &obj, Camera &camera)
 {
     auto &faces = obj.getFaces();
     auto &vertices_ = obj.getVertices();
-    auto vertices = vertices_;
+    auto vertices__ = vertices_;
+    // add to vertices
     glm::mat4 MVP = camera.getViewProjectionMatrix();
-    for (auto &v : vertices)
+    for (auto &v : vertices__)
     {
         glm::vec4 v4(v.x, v.y, v.z, 1.0f);
         v4 = MVP * v4;
@@ -52,15 +74,15 @@ void Scanline::buildTable(OBJ &obj, Camera &camera)
         v.x = (v.x + 1.0f) * width / 2.0f; // from world space to screen space
         v.y = (v.y + 1.0f) * height / 2.0f;
     }
-
+    vertices.insert(vertices.end(), vertices__.begin(), vertices__.end());
     for (int face_index = 0; face_index < faces.size(); face_index++)
     {
         auto &face = faces[face_index];
         Polygon polygon;
-        polygon.pid = face_index;
-        polygon.vertices.push_back(vertices[face.v0]);
-        polygon.vertices.push_back(vertices[face.v1]);
-        polygon.vertices.push_back(vertices[face.v2]);
+        polygon.pid = face_index + obj_face_offset;
+        polygon.vertices.push_back(vertices[face.v0 + obj_vertex_offset]);
+        polygon.vertices.push_back(vertices[face.v1 + obj_vertex_offset]);
+        polygon.vertices.push_back(vertices[face.v2 + obj_vertex_offset]);
         // compute the plane equation
         auto &v0 = polygon.vertices[0];
         auto &v1 = polygon.vertices[1];
@@ -73,13 +95,15 @@ void Scanline::buildTable(OBJ &obj, Camera &camera)
             continue;
         __buildActivateDeactivateTable(polygon);
     }
+    obj_vertex_offset += vertices_.size();
+    obj_face_offset += faces.size();
 }
 
 void Scanline::scanScreen()
 {
     for (int y = 0; y < height; y++)
     {
-        int num = activeEdgeTable.size();
+        int prevAETSize = activeEdgeTable.size();
         for (auto &eId : activeTable[y])
             activeEdgeTable.push_back(TotalEdgeTable[eId]);
         int tobeAdded = activeTable[y].size();
@@ -98,13 +122,11 @@ void Scanline::scanScreen()
             if (!found)
                 assert(false && "edge not found");
         }
-        int tobeDeleted = deactiveTable[y].size();
-        assert(num + tobeAdded - tobeDeleted == activeEdgeTable.size() && "active edge table size not match");
+        assert(prevAETSize + tobeAdded - deactiveTable[y].size() == activeEdgeTable.size() && "active edge table size not match");
+        assert(activeEdgeTable.size() % 2 == 0 && "active edge table size not even");
 
-        // sort the active edge table
         std::sort(activeEdgeTable.begin(), activeEdgeTable.end(), [](const Edge &e0, const Edge &e1) -> bool
                   { return e0.xStart < e1.xStart; });
-        assert(activeEdgeTable.size() % 2 == 0 && "active edge table size not even");
 
         for (int i = 0; i < activeEdgeTable.size(); i++)
         {
@@ -118,21 +140,24 @@ void Scanline::scanScreen()
             if (xStart == xEnd)
                 continue;
             float zStart = edge0.zStart; // z buffer
-            float zEnd = edge1.zStart;
-            float zSlope = (zEnd - zStart) / (xEnd - xStart);
             float rStart = edge0.rStart; // rgb
-            float rEnd = edge1.rStart;
-            float rSlope = (rEnd - rStart) / (xEnd - xStart);
             float gStart = edge0.gStart;
-            float gEnd = edge1.gStart;
-            float gSlope = (gEnd - gStart) / (xEnd - xStart);
             float bStart = edge0.bStart;
+            float zEnd = edge1.zStart;
+            float rEnd = edge1.rStart;
+            float gEnd = edge1.gStart;
             float bEnd = edge1.bStart;
-            float bSlope = (bEnd - bStart) / (xEnd - xStart);
-            for (int x = xStart > 0 ? xStart : 0; x < xEnd && x < width; x++) // fill the pixels
+            float zSlope = (zEnd - zStart) / (edge1.xStart - edge0.xStart);
+            float rSlope = (rEnd - rStart) / (edge1.xStart - edge0.xStart);
+            float gSlope = (gEnd - gStart) / (edge1.xStart - edge0.xStart);
+            float bSlope = (bEnd - bStart) / (edge1.xStart - edge0.xStart);
+            zStart = zStart + (xStart - edge0.xStart) * zSlope;
+            rStart = rStart + (xStart - edge0.xStart) * rSlope;
+            gStart = gStart + (xStart - edge0.xStart) * gSlope;
+            bStart = bStart + (xStart - edge0.xStart) * bSlope;
+            xEnd = xEnd > width - 1 ? width - 1 : xEnd;
+            for (int x = (xStart > 0 ? xStart : 0); x < xEnd; x++) // fill the pixels
             {
-                if (x < 0 || x >= width)
-                    continue;
                 if (zBuffer[y * width + x] > zStart) // depth test
                 {
                     zBuffer[y * width + x] = zStart;
@@ -158,6 +183,9 @@ void Scanline::scanScreen()
         {
             e.xStart += e.xSlope;
             e.zStart += e.zSlope;
+            e.rStart += e.rSlope;
+            e.gStart += e.gSlope;
+            e.bStart += e.bSlope;
             e.if_paired = false;
         }
     }
@@ -181,14 +209,17 @@ void Scanline::__buildActivateDeactivateTable(Polygon &polygon)
             std::swap(v0, v1);
         float y_ac_f = v0.y;
         float y_de_f = v1.y;
-        if (y_ac_f >= height || y_de_f < 0)
+        if (y_ac_f >= height - 1 || y_de_f <= 0)
             continue;
-        int y_ac = std::ceil(y_ac_f < 0.0 ? 0.0 : y_ac_f);
-        int y_de = std::ceil(y_de_f >= height ? height - 1 : y_de_f);
+        int y_ac = std::ceil(y_ac_f <= 0.0 ? 0 : y_ac_f);
+        int y_de = std::ceil(y_de_f >= height - 1 ? height - 1 : y_de_f);
+        if (y_ac == y_de)
+            continue;
 
         Edge edge(v0, v1, edgeIdCounter++);
         activeTable[y_ac].push_back(edge.eId);
         deactiveTable[y_de].push_back(edge.eId);
+        edge.edgeStepToIntegerY(y_ac);
         edge.pId = polygon.pid;
         TotalEdgeTable.push_back(edge);
     }
