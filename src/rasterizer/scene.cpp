@@ -54,6 +54,16 @@ void Scene::transformObj(int index, const glm::mat4 &transform)
     objs[index]->implementTransform(transform);
 }
 
+void Scene::setObjModelMatrix(int index, const glm::mat4 &model)
+{
+    if (index < 0 || index >= objs.size())
+    {
+        std::cerr << "Scene::setObjModelMatrix index out of range" << std::endl;
+        return;
+    }
+    objs[index]->setModelMatrix(model);
+}
+
 void Scene::createTexture(const std::string &texture_name)
 {
     texture_names.push_back(texture_name);

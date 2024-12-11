@@ -39,7 +39,7 @@ void NaiveZBuffer::__vertexShader(OBJ &obj, Camera &camera)
     // from world space to screen space
     auto &faces_ = obj.getFaces();
     auto &vertices_ = obj.getVertices();
-    glm::mat4 MVP = camera.getViewProjectionMatrix();
+    glm::mat4 MVP = camera.getViewProjectionMatrix() * obj.getModelMatrix();
     for (auto &v : vertices_)
     {
         glm::vec4 v4(v.x, v.y, v.z, 1.0f);

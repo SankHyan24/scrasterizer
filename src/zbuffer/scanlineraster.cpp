@@ -101,3 +101,12 @@ void ScanlineRaster::__ScanLinePreDebug()
     SCRA::Utils::saveAsPPM(color, width, height, "zbuffer.ppm");
     delete[] color;
 }
+
+void ScanlineRaster::__showScanlineDataStructInfo()
+{
+    _showimguiSubTitle("Scan Line Z-Buffer Info");
+    ImGui::Text("Vertex Count: %d", scanline->vertices.size());
+    ImGui::Text("Edge Count: %d", scanline->TotalEdgeTable.size());
+    ImGui::Text("Average Active Edge Count: %f", scanline->avgEdgeCount);
+    // use cull face
+}

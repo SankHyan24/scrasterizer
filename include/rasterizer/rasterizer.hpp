@@ -19,7 +19,7 @@ public:
     // window init interface
     virtual int renderInit() = 0;
     // imgui interface
-    virtual int renderImGui() { return 1; };
+    virtual int renderImGui() = 0;
     // render interface
     virtual void render() = 0;    // main render function cpu
     virtual void renderGPU() = 0; // main render function opengl
@@ -49,6 +49,8 @@ protected:
     float camLengthToTarget{8.660254f};
     float camLengthToTargetOld{8.660254f};
     void _setCameraLengthToTarget();
+    std::vector<SCRA::Utils::ModelParams> modelParams;
+    void _setModelMatrix(int obj_index);
 
     void _drawCoordinateAxis();
     void _drawLine(const glm::vec2 &p0, const glm::vec2 &p1, char r = 255, char g = 255, char b = 255);
@@ -93,16 +95,17 @@ public:
             auto &obj = objs[i];
             auto vertices = obj->getVertices();
             auto faces = obj->getFaces();
+            auto modelMatrix = obj->getModelMatrix();
             for (auto &face : faces)
             {
                 auto v0 = vertices[face.v0];
                 auto v1 = vertices[face.v1];
                 auto v2 = vertices[face.v2];
-                auto p0 = glm::vec4(viewProjectionMatrix * glm::vec4(v0.x, v0.y, v0.z, 1.0f));
+                auto p0 = glm::vec4(viewProjectionMatrix * modelMatrix * glm::vec4(v0.x, v0.y, v0.z, 1.0f));
                 p0 = p0 / p0.w;
-                auto p1 = glm::vec4(viewProjectionMatrix * glm::vec4(v1.x, v1.y, v1.z, 1.0f));
+                auto p1 = glm::vec4(viewProjectionMatrix * modelMatrix * glm::vec4(v1.x, v1.y, v1.z, 1.0f));
                 p1 = p1 / p1.w;
-                auto p2 = glm::vec4(viewProjectionMatrix * glm::vec4(v2.x, v2.y, v2.z, 1.0f));
+                auto p2 = glm::vec4(viewProjectionMatrix * modelMatrix * glm::vec4(v2.x, v2.y, v2.z, 1.0f));
                 p2 = p2 / p2.w;
                 _drawTriangle(glm::vec3(p0), glm::vec3(p1), glm::vec3(p2));
             }

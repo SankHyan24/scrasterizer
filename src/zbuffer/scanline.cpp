@@ -63,7 +63,7 @@ void Scanline::buildTable(OBJ &obj, Camera &camera)
     auto &vertices_ = obj.getVertices();
     auto vertices__ = vertices_;
     // add to vertices
-    glm::mat4 MVP = camera.getViewProjectionMatrix();
+    glm::mat4 MVP = camera.getViewProjectionMatrix() * obj.getModelMatrix();
     for (auto &v : vertices__)
     {
         glm::vec4 v4(v.x, v.y, v.z, 1.0f);
@@ -101,6 +101,7 @@ void Scanline::buildTable(OBJ &obj, Camera &camera)
 
 void Scanline::scanScreen()
 {
+    avgEdgeCount = 0.0f;
     for (int y = 0; y < height; y++)
     {
         int prevAETSize = activeEdgeTable.size();
@@ -188,7 +189,9 @@ void Scanline::scanScreen()
             e.bStart += e.bSlope;
             e.if_paired = false;
         }
+        avgEdgeCount += activeEdgeTable.size() / 2.0f;
     }
+    avgEdgeCount /= height;
 }
 
 void Scanline::__buildActivateDeactivateTable(Polygon &polygon)

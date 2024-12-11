@@ -37,7 +37,8 @@ public:
     const Camera &getCamera() { return *camera; }
     Camera &getCameraV() { return *camera; }
 
-    void transformObj(int index, const glm::mat4 &transform); // implement transform for obj[index]
+    void transformObj(int index, const glm::mat4 &transform);  // implement transform for obj[index]
+    void setObjModelMatrix(int index, const glm::mat4 &model); // set model matrix for obj[index]
 
     // for GPU buffer
     void createTexture(const std::string &texture_name);

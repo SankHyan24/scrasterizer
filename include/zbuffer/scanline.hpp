@@ -53,6 +53,9 @@ public:
     void buildTable(OBJ &obj, Camera &camera);
     void scanScreen();
 
+    // for debug
+    float avgEdgeCount{0.0f};
+
 private:
     int edgeIdCounter{0};
     void __buildActivateDeactivateTable(Polygon &polygon);
@@ -72,6 +75,7 @@ public:
     {
         _showCameraInfoInImgui();
         _showObjInfosInImgui();
+        __showScanlineDataStructInfo();
         return 1;
     }
 
@@ -82,4 +86,6 @@ private:
     GLuint ssbo;
     std::unique_ptr<Scanline> scanline;
     int debug_count{0};
+
+    void __showScanlineDataStructInfo();
 };

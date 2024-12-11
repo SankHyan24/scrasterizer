@@ -87,7 +87,6 @@ public:
     void setModelMatrix(const glm::mat4 &t)
     {
         transform = t;
-        assert(-1);
     } // not used anymore
     const glm::mat4 &getModelMatrix() const { return transform; }
 

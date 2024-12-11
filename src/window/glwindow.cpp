@@ -66,15 +66,6 @@ void Window::run()
 
 void Window::__update()
 {
-    frameCount++;
-    double currentTime = glfwGetTime();
-    deltaTime = currentTime - lastTime;
-    if (deltaTime >= 1.0)
-    {
-        fpsNow = frameCount / deltaTime;
-        frameCount = 0;
-        lastTime = currentTime;
-    }
     if (!renderCallback())       // Our Render function
         __showTextureMapImgui(); // Render the texture into the window
 
@@ -137,13 +128,28 @@ void Window::__showImGuiSubWindow()
     ImGui::SetNextWindowSize(ImVec2(500, height + 40), ImGuiCond_FirstUseEver);
     ImGui::Begin("Control Panel");
     if (show_FPS)
-        __showFPS();
+        __showWindowInfo();
     if (renderImGui)
         renderImGui();
     ImGui::End();
 }
 
-void Window::__showFPS()
+void Window::__showWindowInfo()
 {
-    ImGui::Text("FPS: %.1f", fpsNow); // 显示当前帧率
+    ImGui::Text("Width: %d", width);
+    ImGui::Text("Height: %d", height);
+    ImGui::Text("FPS: %.3f (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate); // 显示当前帧率
+
+    double maxFPS = 0.0;
+    for (int i = 99; i > 0; i--)
+    {
+        fpsBuffer[i] = fpsBuffer[i - 1];
+        if (fpsBuffer[i] > maxFPS)
+            maxFPS = fpsBuffer[i];
+    }
+    fpsBuffer[0] = ImGui::GetIO().Framerate;
+    {
+        // void ImGui::PlotLines(const char *label, const float *values, int values_count, int values_offset, const char *overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride)
+        ImGui::PlotLines("##", fpsBuffer, IM_ARRAYSIZE(fpsBuffer), 0, NULL, 0.0f, maxFPS, ImVec2(0, 80));
+    }
 }

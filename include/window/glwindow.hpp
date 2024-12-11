@@ -34,7 +34,7 @@ private:
 
     // for opengl program
     void __showImGuiSubWindow();
-    void __showFPS();
+    void __showWindowInfo();
     // void __showWindow();
 
     // Window attributes
@@ -43,9 +43,8 @@ private:
     GLFWwindow *window;
 
     // Frame Counter
-    double lastTime{0.0}, deltaTime{0.0};
-    int frameCount{0};
-    double fpsNow{0.0};
+    int fpsBufferPointer{0};
+    float fpsBuffer[100]{0.0};
 
     // Use to bind texture map
     char *textureMap;

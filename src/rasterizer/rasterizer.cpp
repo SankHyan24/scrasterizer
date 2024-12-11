@@ -48,18 +48,20 @@ void Rasterizer::init(int width, int height)
 }
 
 void Rasterizer::run()
-{
+{ // this function only run once
+    for (auto &obj : scene->objs)
+        modelParams.push_back(SCRA::Utils::ModelParams());
     if (isGPU)
     {
         scene->printDebugInfo();
         scene->bindGPU();
     }
-    window->run();
+    window->run(); // loop is inside this function
 };
 
 void Rasterizer::implementTransform(std::string file_name, const glm::mat4 &transform)
 {
-    // Translate, Rotate, Scale
+    // Translate, Rotate, Scale, this change the obj file permanently
     int index = -1;
     for (int i = 0; i < scene->obj_filenames.size(); i++)
         if (scene->obj_filenames[i] == file_name)
@@ -134,6 +136,16 @@ void Rasterizer::_setCameraLengthToTarget()
     float radius = glm::length(camVector);
     auto newCamVector = glm::normalize(camVector) * camLengthToTarget;
     camera.updateCamera(target + newCamVector, target, camera.getUp());
+}
+
+void Rasterizer::_setModelMatrix(int obj_index)
+{
+    glm::mat4 modelMatrix(1.0f);
+    SCRA::Utils::ModelParams &modelParam = modelParams[obj_index];
+    modelMatrix = SCRA::Utils::TranslateMatrix(modelParam.x, modelParam.y, modelParam.z) * modelMatrix;
+    modelMatrix = SCRA::Utils::RotateMatrix(modelParam.rx, modelParam.ry, modelParam.rz) * modelMatrix;
+    modelMatrix = SCRA::Utils::ScaleMatrix(modelParam.sx, modelParam.sy, modelParam.sz) * modelMatrix;
+    scene->setObjModelMatrix(obj_index, modelMatrix);
 }
 
 void Rasterizer::_drawCoordinateAxis()
@@ -275,15 +287,59 @@ void Rasterizer::_showObjInfosInImgui()
         ImGui::Separator();
         auto &obj = scene->objs[i];
         bool obj_activated = scene->obj_activated[i];
-        if (ImGui::Checkbox(obj->getFileName().c_str(), &obj_activated))
+        std::string obj_name = obj->getFileName();
+        if (ImGui::Checkbox(obj_name.c_str(), &obj_activated))
         {
             scene->obj_activated[i] = obj_activated;
         }
         if (!obj_activated)
             continue;
+        ImGui::PushID(i);
+
         ImGui::Text("OBJ [%d]: %s", i, obj->getFileName().c_str());
         ImGui::Text("Vertex Count: %d", obj->getVertices().size());
         ImGui::Text("Face Count: %d", obj->getFaces().size());
+        // transform
+        {
+            static SCRA::Utils::ModelParams modelParam;
+            std::string label = "##xx" + std::to_string(i);
+            ImGui::Text("Transform");
+            ImGui::SameLine();
+            if (ImGui::Button("Reset"))
+            {
+                modelParam = SCRA::Utils::ModelParams();
+                modelParams[i] = modelParam;
+                _setModelMatrix(i);
+            }
+            ImGui::InputFloat3((label + "Translate").c_str(), &modelParam.x);
+            ImGui::SameLine();
+            if (ImGui::Button("Translate"))
+            {
+                modelParams[i].x = modelParam.x;
+                modelParams[i].y = modelParam.y;
+                modelParams[i].z = modelParam.z;
+                _setModelMatrix(i);
+            }
+            ImGui::InputFloat3((label + "Rotate").c_str(), &modelParam.rx);
+            ImGui::SameLine();
+            if (ImGui::Button("Rotate"))
+            {
+                modelParams[i].rx = modelParam.rx;
+                modelParams[i].ry = modelParam.ry;
+                modelParams[i].rz = modelParam.rz;
+                _setModelMatrix(i);
+            }
+            ImGui::InputFloat3((label + "Scale").c_str(), &modelParam.sx);
+            ImGui::SameLine();
+            if (ImGui::Button("Scale"))
+            {
+                modelParams[i].sx = modelParam.sx;
+                modelParams[i].sy = modelParam.sy;
+                modelParams[i].sz = modelParam.sz;
+                _setModelMatrix(i);
+            }
+        }
+        ImGui::PopID();
     }
 }
 
