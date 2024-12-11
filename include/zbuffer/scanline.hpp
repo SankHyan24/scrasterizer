@@ -61,6 +61,12 @@ public:
     void render() override;
     void renderGPU() override;
     int renderInit() override;
+    int renderImGui() override
+    {
+        _showCameraInfoInImgui();
+        _showObjInfosInImgui();
+        return 1;
+    }
 
 private:
     void __ScanLinePreInit();

@@ -67,6 +67,8 @@ public:
     int renderImGui() override
     {
         _showCameraInfoInImgui();
+        _showObjInfosInImgui();
+        __showZBufferDataStructInfo();
         return 1;
     }
 
@@ -74,4 +76,6 @@ private:
     void __putColorBuffer2TextureMap();
     std::unique_ptr<NaiveZBuffer> zbuffer;
     float *colorPrecompute{nullptr};
+
+    void __showZBufferDataStructInfo();
 };

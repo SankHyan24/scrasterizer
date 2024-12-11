@@ -112,6 +112,7 @@ void NaiveZBuffer::__drawTriangle(const Triangle &triangle)
     int xEnd = width - 1 < triangle.bb.xMax ? width - 1 : triangle.bb.xMax;
     int yStart = 0 < triangle.bb.yMin ? triangle.bb.yMin : 0;
     int yEnd = height - 1 < triangle.bb.yMax ? height - 1 : triangle.bb.yMax;
+#pragma omp parallel for collapse(2)
     for (int x = xStart; x <= xEnd; x++)
         for (int y = yStart; y <= yEnd; y++)
             if (__ifPixelInsideTriangle(x, y, triangle))
@@ -123,6 +124,7 @@ void NaiveZBuffer::__drawTriangle(const Triangle &triangle)
                 float R = lambda1 * vertices[triangle.v0].nx + lambda2 * vertices[triangle.v1].nx + lambda3 * vertices[triangle.v2].nx;
                 float G = lambda1 * vertices[triangle.v0].ny + lambda2 * vertices[triangle.v1].ny + lambda3 * vertices[triangle.v2].ny;
                 float B = lambda1 * vertices[triangle.v0].nz + lambda2 * vertices[triangle.v1].nz + lambda3 * vertices[triangle.v2].nz;
+#pragma omp critical
                 if (z < zBufferData[y * width + x])
                 {
                     zBufferData[y * width + x] = z;

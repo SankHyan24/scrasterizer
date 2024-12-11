@@ -26,7 +26,12 @@ public:
 
     void loadOBJ(const std::string &filename);
     void loadOBJ(const std::string &filename, const std::string &shadername) { scene->addOBJ(filename, shadername); }
-    void setCamera(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up) { scene->getCameraV().updateCamera(position, target, up); }
+    void setCamera(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up)
+    {
+        scene->getCameraV().updateCamera(position, target, up);
+        camLengthToTarget = glm::length(position - target);
+        camLengthToTargetOld = camLengthToTarget;
+    }
     void implementTransform(std::string file_name, const glm::mat4 &transform);
     void implementTransform(int index, const glm::mat4 &transform) { scene->transformObj(index, transform); }
 
@@ -36,17 +41,22 @@ public:
 protected:
     float *zBufferPrecompute{nullptr};
 
-    float autoRotateSpeed{1.0f};
+    float camAutoRotateSpeed{1.0f};
     void _autoRotateCamera();
-    float horiTheta{0.25f};
-    float horiThetaOld{0.25f};
+    float camHoriTheta{0.25f};
+    float camHoriThetaOld{0.25f};
     void _setCameraTheta();
+    float camLengthToTarget{8.660254f};
+    float camLengthToTargetOld{8.660254f};
+    void _setCameraLengthToTarget();
+
     void _drawCoordinateAxis();
     void _drawLine(const glm::vec2 &p0, const glm::vec2 &p1, char r = 255, char g = 255, char b = 255);
     void _drawLineScreenSpace(const glm::vec2 &p0, const glm::vec2 &p1, char r = 255, char g = 255, char b = 255);
     void _drawTriangle(const glm::vec3 &v0, const glm::vec3 &v1, const glm::vec3 &v2);
 
     void _showCameraInfoInImgui();
+    void _showObjInfosInImgui();
     void _showimguiSubTitle(const std::string &title);
 
     // GPU
@@ -76,8 +86,11 @@ public:
         _drawCoordinateAxis();
         auto &camera = scene->getCameraV();
         auto viewProjectionMatrix = camera.getViewProjectionMatrix();
-        for (auto &obj : objs)
+        for (int i = 0; i < objs.size(); i++)
         {
+            if (!scene->obj_activated[i])
+                continue;
+            auto &obj = objs[i];
             auto vertices = obj->getVertices();
             auto faces = obj->getFaces();
             for (auto &face : faces)
@@ -104,6 +117,13 @@ public:
 
     int renderInit() override
     {
+        return 1;
+    }
+
+    int renderImGui() override
+    {
+        _showCameraInfoInImgui();
+        _showObjInfosInImgui();
         return 1;
     }
 

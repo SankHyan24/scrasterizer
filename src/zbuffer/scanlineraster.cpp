@@ -72,8 +72,9 @@ void ScanlineRaster::__ScanLinePreInit()
 void ScanlineRaster::__ScanLinePreCompute()
 {
     scanline->init();
-    for (auto &obj : scene->objs)
-        scanline->buildTable(*obj, scene->getCameraV());
+    for (int i = 0; i < scene->objs.size(); i++)
+        if (scene->obj_activated[i])
+            scanline->buildTable(*scene->objs[i], scene->getCameraV());
     scanline->scanScreen();
 
     if (isGPU)

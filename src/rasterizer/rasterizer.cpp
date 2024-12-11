@@ -84,7 +84,7 @@ void Rasterizer::loadOBJ(const std::string &filename)
 void Rasterizer::_autoRotateCamera()
 {
     // rotate camera around target
-    float v = autoRotateSpeed;
+    float v = camAutoRotateSpeed;
     float Dx = scene->getCameraV().getPosition().x - scene->getCameraV().getTarget().x;
     float Dz = scene->getCameraV().getPosition().z - scene->getCameraV().getTarget().z;
     float radius = sqrt(Dx * Dx + Dz * Dz);
@@ -99,7 +99,7 @@ void Rasterizer::_autoRotateCamera()
 void Rasterizer::_setCameraTheta()
 {
     // theta is from 0 to 1, now to 0 to 2pi
-    float theta = horiTheta * glm::pi<float>();
+    float theta = camHoriTheta * glm::pi<float>();
     glm::vec3 camVector(scene->getCameraV().getPosition() - scene->getCameraV().getTarget());
     float radius = glm::length(camVector);
     float x = camVector.x; // red axis
@@ -123,6 +123,17 @@ void Rasterizer::_setCameraTheta()
         new_x = dxdz * new_z;
     }
     scene->getCameraV().updateCamera(glm::vec3(new_x, new_y, new_z) + scene->getCameraV().getTarget(), scene->getCameraV().getTarget(), scene->getCameraV().getUp());
+}
+
+void Rasterizer::_setCameraLengthToTarget()
+{
+    auto &camera = scene->getCameraV();
+    auto position = camera.getPosition();
+    auto target = camera.getTarget();
+    auto camVector = position - target;
+    float radius = glm::length(camVector);
+    auto newCamVector = glm::normalize(camVector) * camLengthToTarget;
+    camera.updateCamera(target + newCamVector, target, camera.getUp());
 }
 
 void Rasterizer::_drawCoordinateAxis()
@@ -225,7 +236,7 @@ void Rasterizer::_showCameraInfoInImgui()
     {
         ImGui::Text("Auto Rotate Speed:");
         ImGui::SameLine();
-        ImGui::SliderFloat("##slider0", &autoRotateSpeed, 0.0f, 3.0f);
+        ImGui::SliderFloat("##slider0", &camAutoRotateSpeed, 0.0f, 3.0f);
     }
     ImGui::Text("Position: (%.2f, %.2f, %.2f)", camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
     ImGui::Text("Target: (%.2f, %.2f, %.2f)", camera.getTarget().x, camera.getTarget().y, camera.getTarget().z);
@@ -235,12 +246,44 @@ void Rasterizer::_showCameraInfoInImgui()
         // set camera position
         ImGui::Text("Camera Height:");
         ImGui::SameLine();
-        ImGui::SliderFloat("##slider1", &horiTheta, 0.001f, 0.999f);
-        if (horiTheta != horiThetaOld)
+        ImGui::SliderFloat("##slider1", &camHoriTheta, 0.001f, 0.999f);
+        if (camHoriTheta != camHoriThetaOld)
         {
-            horiThetaOld = horiTheta;
+            camHoriThetaOld = camHoriTheta;
             _setCameraTheta();
         }
+    }
+    {
+        // set camera length to target
+        ImGui::Text("Camera Length:");
+        ImGui::SameLine();
+        ImGui::SliderFloat("##slider2", &camLengthToTarget, 0.1f, 20.0f);
+        if (camLengthToTarget != camLengthToTargetOld)
+        {
+            camLengthToTargetOld = camLengthToTarget;
+            _setCameraLengthToTarget();
+        }
+    }
+}
+
+void Rasterizer::_showObjInfosInImgui()
+{
+    _showimguiSubTitle("OBJ Info");
+    ImGui::Text("OBJ Count: %d", scene->objs.size());
+    for (int i = 0; i < scene->objs.size(); i++)
+    {
+        ImGui::Separator();
+        auto &obj = scene->objs[i];
+        bool obj_activated = scene->obj_activated[i];
+        if (ImGui::Checkbox(obj->getFileName().c_str(), &obj_activated))
+        {
+            scene->obj_activated[i] = obj_activated;
+        }
+        if (!obj_activated)
+            continue;
+        ImGui::Text("OBJ [%d]: %s", i, obj->getFileName().c_str());
+        ImGui::Text("Vertex Count: %d", obj->getVertices().size());
+        ImGui::Text("Face Count: %d", obj->getFaces().size());
     }
 }
 

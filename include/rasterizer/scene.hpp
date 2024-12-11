@@ -13,6 +13,7 @@ public:
     std::unique_ptr<Camera> camera;
     // objs
     std::vector<std::unique_ptr<OBJ>> objs;
+    std::vector<bool> obj_activated;
     std::vector<std::string> obj_filenames;
     // programs for gpu
     std::vector<GLuint> textures;

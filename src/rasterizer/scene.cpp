@@ -18,6 +18,7 @@ void Scene::addOBJ(const std::string &filename)
     obj->printSummary();
     obj_filenames.push_back(obj->getFileName());
     objs.push_back(std::move(obj));
+    obj_activated.push_back(true);
 }
 
 void Scene::addOBJ(const std::string &filename, const std::string &shadername)
@@ -26,6 +27,7 @@ void Scene::addOBJ(const std::string &filename, const std::string &shadername)
     obj->printSummary();
     obj_filenames.push_back(obj->getFileName());
     objs.push_back(std::move(obj));
+    obj_activated.push_back(true);
     // get program index
     int program_index = -1;
     for (int i = 0; i < programs.size(); i++)
