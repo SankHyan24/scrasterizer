@@ -19,7 +19,6 @@ int main()
     rasterizer->implementTransform("bunny.obj", SCRA::Utils::ScaleMatrix(20.0f, 20.0f, 20.0f));
 
     rasterizer->loadOBJ("./assets/teapot.obj");
-    // rasterizer->loadOBJ("./assets/teapot.obj", "basic");
     rasterizer->implementTransform("teapot.obj", SCRA::Utils::TranslateMatrix(0.0f, -1.5f, 0.0f));
     rasterizer->implementTransform("teapot.obj", SCRA::Utils::ScaleMatrix(0.6f, 0.6f, 0.6f));
 

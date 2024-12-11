@@ -3,7 +3,7 @@ set(_EXE_NAME_ "scra") # target name
 set(_SRC_FILE_NAME_ "src") # source file location
 
 cmake_minimum_required(VERSION 3.15)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
 project(${_PROJECT_NAME_} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
