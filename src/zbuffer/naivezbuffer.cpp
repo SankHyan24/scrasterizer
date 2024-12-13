@@ -61,9 +61,6 @@ void NaiveZBuffer::__vertexShader(OBJ &obj, Camera &camera)
         auto &face = faces_[face_index];
         faces.push_back(face);
         Triangle triangle;
-        triangle.v0 = face.v0;
-        triangle.v1 = face.v1;
-        triangle.v2 = face.v2;
         triangle.v0 = face.v0 + obj_vertex_offset;
         triangle.v1 = face.v1 + obj_vertex_offset;
         triangle.v2 = face.v2 + obj_vertex_offset;

@@ -2,17 +2,26 @@
 #include <glm/glm.hpp>
 
 using Float32 = float;
-using Uint = unsigned int;
 using VertexIndex = int;
 using NormalIndex = int;
 using TextureUVIndex = int;
 using Uchar = unsigned char;
+using Uint = unsigned int;
+using Uint32 = unsigned int;
 struct Vertex
 {
     Float32 x, y, z;
     Float32 nx, ny, nz;
     Vertex(Float32 x, Float32 y, Float32 z) : x(x), y(y), z(z) {}
     Vertex(const glm::vec3 &v) : x(v.x), y(v.y), z(v.z) {}
+    Float32 operator[](const int i) const
+    {
+        if (i == 0)
+            return x;
+        if (i == 1)
+            return y;
+        return z;
+    }
 };
 
 struct Normal

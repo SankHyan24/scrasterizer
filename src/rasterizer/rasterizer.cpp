@@ -1,8 +1,13 @@
-#include <rasterizer/rasterizer.hpp>
 #include <glm/gtc/constants.hpp>
-
+#include <rasterizer/rasterizer.hpp>
+#include <utils.hpp>
 void Rasterizer::init(int width, int height)
 {
+#ifdef _MSC_VER
+    std::cout << "Use " << SCRA::Utils::BLUE_LOG << "Microsoft Visual C++ Compiler" << SCRA::Utils::COLOR_RESET << std::endl;
+#else
+    std::cout << "Use " << SCRA::Utils::BLUE_LOG << "GNU Compiler" << SCRA::Utils::COLOR_RESET << std::endl;
+#endif
     this->width = width;
     this->height = height;
     this->__printHello();
