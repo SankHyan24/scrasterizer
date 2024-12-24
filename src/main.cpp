@@ -21,7 +21,7 @@ int main()
 
     rasterizer->loadOBJ("./assets/teapot.obj");
     rasterizer->implementTransform("teapot.obj", SCRA::Utils::TranslateMatrix(0.0f, -1.5f, 0.0f));
-    rasterizer->implementTransform("teapot.obj", SCRA::Utils::ScaleMatrix(0.6f, 0.6f, 0.6f));
+    // rasterizer->implementTransform("teapot.obj", SCRA::Utils::ScaleMatrix(0.6f, 0.6f, 0.6f));
 
     rasterizer->run();
     std::cout << "Bye" << std::endl;

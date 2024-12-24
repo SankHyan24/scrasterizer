@@ -15,6 +15,9 @@ void RasterBVH::traversalBVH()
     assert(_root != nullptr && "BVH root is nullptr");
     if (_root == nullptr)
         return;
+
+    _context.culledNodes = _totalNodes;
+    _context.culledFaces = _context.totalFaces;
     __traversalBVH(_root);
 }
 
@@ -275,13 +278,18 @@ void RasterBVH::__traversalBVH(BVHBuildNode *node)
     if (node->splitAxis == 3)
     {
         // _traversalDebug(node->bounds);
-        _traversalRenderCallback(node);
+        _traversalRenderCallback(node, _context);
+        _context.culledNodes--;
     }
     else
     {
         // _traversalDebug(node->bounds);
-        if (!_traversalRenderCallback(node))
-            return;
+        _traversalRenderCallback(node, _context);
+        //  if (!_traversalRenderCallback(node, _context))
+        // {
+        //     return;
+        // }
+        _context.culledNodes--;
         __traversalBVH(node->children[0]);
         __traversalBVH(node->children[1]);
     }

@@ -21,8 +21,9 @@ public:
         if (height % pixelPerTileY != 0)
             tileCountY++;
         maxZ = new float[tileCountX * tileCountY];
-        for (int i = 0; i < tileCountX * tileCountY; i++)
-            maxZ[i] = std::numeric_limits<float>::infinity();
+        std::fill(maxZ, maxZ + tileCountX * tileCountY, std::numeric_limits<float>::infinity());
+        // for (int i = 0; i < tileCountX * tileCountY; i++)
+        //     maxZ[i] = std::numeric_limits<float>::infinity();
 
         std::cout << "HeirarZBuffer construction done" << std::endl;
         std::cout << "Have " << tileCountX << " tiles in x direction, and " << tileCountY << " tiles in y direction" << std::endl;
@@ -31,22 +32,6 @@ public:
     {
         delete[] maxZ;
     }
-    bool ifTileNeedRender(const BoundingBox3f &bb, const glm::mat4 &mat, Uint idx, Uint idy)
-    {
-        int pxMin = idx * pixelPerTileX, pxMax = (idx + 1) * pixelPerTileX;
-        int pyMin = idy * pixelPerTileY, pyMax = (idy + 1) * pixelPerTileY;
-        float newBBxMin = bb.pMinNew.x, newBBxMax = bb.pMaxNew.x;
-        float newBByMin = bb.pMinNew.y, newBByMax = bb.pMaxNew.y;
-        // to screen space
-        newBBxMin = (newBBxMin + 1.0f) * width / 2.0f;
-        newBBxMax = (newBBxMax + 1.0f) * width / 2.0f;
-        newBByMin = (newBByMin + 1.0f) * height / 2.0f;
-        newBByMax = (newBByMax + 1.0f) * height / 2.0f;
-
-        Uint2 newBBMin = Uint2(newBBxMin, newBByMin);
-        Uint2 newBBMax = Uint2(newBBxMax, newBByMax);
-        return ifTileNeedRender(newBBMin, newBBMax, idx, idy, bb.getMinZ());
-    }
 
     bool ifTileNeedRender(Uint2 bbpMin, Uint2 bbpMax, Uint idx, Uint idy, float bbMinZ)
     {
@@ -54,6 +39,7 @@ public:
         int pyMin = idy * pixelPerTileY, pyMax = (idy + 1) * pixelPerTileY;
         if (bbpMin.x > pxMax || bbpMax.x < pxMin || bbpMin.y > pyMax || bbpMax.y < pyMin)
             return false;
+        return true;
         if (bbMinZ <= maxZ[idy * tileCountX + idx])
             return true;
         return false;
@@ -62,11 +48,33 @@ public:
     void updateTileMaxZ(Uint idx, Uint idy)
     {
         assert(idx < tileCountX && idy < tileCountY && "updateTileMaxZ: idx or idy out of range");
-        float maxZ_ = maxZ[idy * tileCountX + idx];
-        for (int i = idy * pixelPerTileY; i < (idy + 1) * pixelPerTileY; i++)
-            for (int j = idx * pixelPerTileX; j < (idx + 1) * pixelPerTileX; j++)
+        float maxZ_ = -std::numeric_limits<float>::infinity();
+        int xMin = idx * pixelPerTileX, xMax = (idx + 1) * pixelPerTileX;
+        int yMin = idy * pixelPerTileY, yMax = (idy + 1) * pixelPerTileY;
+        for (int i = yMin; i < yMax; i++)
+            for (int j = xMin; j < xMax; j++)
                 maxZ_ = maxZ_ < zBufferData[i * width + j] ? zBufferData[i * width + j] : maxZ_;
         maxZ[idy * tileCountX + idx] = maxZ_;
+    }
+
+    void drawZ()
+    {
+        for (int i = 0; i < tileCountY; i++)
+            for (int j = 0; j < tileCountX; j++)
+                __drawTileByZValue(j, i);
+    }
+    void __drawTileByZValue(Uint idx, Uint idy)
+    {
+        assert(idx < tileCountX && idy < tileCountY && "drawTileByZValue: idx or idy out of range");
+        for (int i = idy * pixelPerTileY; i < (idy + 1) * pixelPerTileY; i++)
+            for (int j = idx * pixelPerTileX; j < (idx + 1) * pixelPerTileX; j++)
+            {
+                if (maxZ[idy * tileCountX + idx] == std::numeric_limits<float>::infinity())
+                    continue;
+                colorBufferData[i * width * 3 + j * 3] = maxZ[idy * tileCountX + idx];
+                colorBufferData[i * width * 3 + j * 3 + 1] = maxZ[idy * tileCountX + idx];
+                colorBufferData[i * width * 3 + j * 3 + 2] = maxZ[idy * tileCountX + idx];
+            }
     }
 };
 class HeirarZBufferHelper
@@ -115,14 +123,14 @@ public:
         };
         bvh->_traversalDebug = debug;
 
-        BVHRenderCallBack render = [this](BVHBuildNode *node)
+        BVHRenderCallBack render = [this](BVHBuildNode *node, RasterBVHContext &context) -> bool
         {
             // [print node.bounds.info]
             if (node->splitAxis != 3)
             {
-                return __drawBoundingBoxInter(*node);
+                return __drawBoundingBoxInter(*node, context);
             }
-            __drawBoundingBoxLeaf(*node);
+            __drawBoundingBoxLeaf(*node, context);
             return true;
         };
         bvh->_traversalRenderCallback = render;
@@ -159,9 +167,9 @@ private:
     void __fragmentShader()
     {
         bvh->traversalBVH();
-        // __showMaxZ();
+        tileManager->drawZ();
     }
-    void __drawBoundingBoxLeaf(BVHBuildNode &node)
+    void __drawBoundingBoxLeaf(BVHBuildNode &node, RasterBVHContext &context)
     {
         Uint needTileFromX{0}, needTileToX{tileManager->tileCountX}, needTileFromY{0}, needTileToY{tileManager->tileCountY};
         bool need_draw = false;
@@ -203,8 +211,9 @@ private:
         {
             tileManager->updateTileMaxZ(tileMaxZUpdateList[i], tileMaxZUpdateList[i + 1]);
         }
+        context.culledFaces -= face_render_list.size();
     }
-    bool __drawBoundingBoxInter(BVHBuildNode &node)
+    bool __drawBoundingBoxInter(BVHBuildNode &node, RasterBVHContext &context)
     {
         auto &bb = node.bounds;
         Uint needTileFromX{0}, needTileToX{tileManager->tileCountX}, needTileFromY{0}, needTileToY{tileManager->tileCountY}; // 需要绘制的范围
@@ -223,7 +232,6 @@ private:
         {
             for (int j = needTileFromY; j < needTileToY; j++)
             {
-                // if (tileManager->ifTileNeedRender(bb, this->camera.getProjectionMatrix(), i, j))
                 if (tileManager->ifTileNeedRender(newBBMin, newBBMax, i, j, bb.getMinZ()))
                 {
                     need_draw = true;
@@ -362,13 +370,6 @@ private:
                         colorBufferData[(j * width + i) * 3] = r;
                         colorBufferData[(j * width + i) * 3 + 1] = g;
                         colorBufferData[(j * width + i) * 3 + 2] = b;
-                        // update maxZ
-                        // first, find index of this pixel
-                        int idx = i / tileManager->pixelPerTileX;
-                        int idy = j / tileManager->pixelPerTileY;
-                        float maxZCurrent = tileManager->maxZ[idy * tileManager->tileCountX + idx];
-                        if (z > maxZCurrent)
-                            tileManager->maxZ[idy * tileManager->tileCountX + idx] = z;
                     }
                 }
             }
@@ -383,26 +384,6 @@ private:
     bool __ifLambda12InsideTriangle(float l1, float l2)
     {
         return l1 >= 0 && l2 >= 0 && 1 - l1 - l2 >= 0;
-    }
-    void __showMaxZ()
-    {
-        for (int i = 0; i < tileManager->tileCountY; i++)
-        {
-            for (int j = 0; j < tileManager->tileCountX; j++)
-            {
-                float maxZ = tileManager->maxZ[i * tileManager->tileCountX + j];
-                for (int pi = i * tileManager->pixelPerTileY; pi < (i + 1) * tileManager->pixelPerTileY; pi++)
-                {
-                    for (int pj = j * tileManager->pixelPerTileX; pj < (j + 1) * tileManager->pixelPerTileX; pj++)
-                    {
-                        colorBufferData[(pi * width + pj) * 3] = maxZ;
-                        colorBufferData[(pi * width + pj) * 3 + 1] = maxZ;
-                        colorBufferData[(pi * width + pj) * 3 + 2] = maxZ;
-                        break;
-                    }
-                }
-            }
-        }
     }
     int obj_vertex_offset{0}; // for each obj, the offset of vertices
 };
@@ -466,5 +447,8 @@ private:
         ImGui::Text("Face Count: %d", zbuffer->faces.size());
         ImGui::Text("BVH Total Nodes: %d", zbuffer->bvh->_totalNodes);
         ImGui::Text("BVH Depth: %d", zbuffer->bvh->_maxDepth);
+        ImGui::Separator();
+        ImGui::Text("Culled Nodes: %d", zbuffer->bvh->_context.culledNodes);
+        ImGui::Text("Culled Faces: %d", zbuffer->bvh->_context.culledFaces);
     }
 };

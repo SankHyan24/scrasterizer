@@ -10,7 +10,7 @@ class CameraParams
 {
 public:
     CameraParams(float fov, float aspect, float znear, float zfar) : fov(fov), aspect(aspect), znear(znear), zfar(zfar) {}
-    CameraParams() : CameraParams(45.0f, 1.0f, 0.1f, 10000.0f) {}
+    CameraParams() : CameraParams(45.0f, 1.0f, 0.001f, 1000.0f) {}
     ~CameraParams() {}
     float fov, aspect, znear, zfar;
     float width{widthDefault};
