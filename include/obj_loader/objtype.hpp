@@ -8,6 +8,8 @@ using TextureUVIndex = int;
 using Uchar = unsigned char;
 using Uint = unsigned int;
 using Uint2 = glm::uvec2;
+using Sint2 = glm::ivec2;
+using Sint = int;
 using Uint32 = unsigned int;
 struct Vertex
 {

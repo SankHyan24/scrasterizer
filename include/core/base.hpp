@@ -24,6 +24,11 @@ struct Point3
     {
         return i == 0 ? x : (i == 1 ? y : z);
     }
+    friend std::ostream &operator<<(std::ostream &os, const Point3 &p)
+    {
+        os << p.toString();
+        return os;
+    }
 };
 
 template <typename T>

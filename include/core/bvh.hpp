@@ -28,6 +28,21 @@ using BVHRenderCallBack = std::function<bool(BVHBuildNode *, RasterBVHContext &)
 using BVHDebugCallBack = std::function<bool(BoundingBox3f)>;
 class RasterBVH
 {
+    //
+    //  BVH
+    //
+    /***
+     * BVH
+     * Build a BVH for the scene, the bvh is this entire scene's bvh
+     * How to build a BVH: just call the constructor, and the BVH will be built
+     * implementTransform(): this function is used to implement the transform matrix to the BVH, it should be called before each render loop
+     * this function will not update the bvh, but will update the boundingbox class' camera space new boundings (pMinNew, pMaxNew)
+     * traversalBVH(): this function is used to traversal the BVH, it should be called in the render segment shader
+     * and the traversalRenderCallback should be set before calling this function
+     *
+     * How to get the faces from the leaf node:
+     *  the facesindex is stored in the orderedData, you can easily get the face by the index
+     */
 public:
     enum class SplitMethod
     {
@@ -58,8 +73,12 @@ public:
     std::unique_ptr<MemoryArena> _arena;
     std::vector<Face> &_faces;
     std::vector<Vertex> &_vertices;
-    std::vector<Uint> _orderdata;
+    std::vector<Uint> orderedData;
+
+private:
     std::vector<Uint> _faceInfo;
+
+public:
     Uint _totalNodes{0};
     BVHBuildNode *_root{nullptr};
     Uint _memorySize{0};

@@ -50,7 +50,7 @@ BVHBuildNode *RasterBVH::__recursiveBuild(int start, int end)
     maxX = maxY = maxZ = -std::numeric_limits<float>::infinity();
     for (int i = start; i < end; i++)
     {
-        auto &face = _faces[i];
+        auto &face = _faces[_faceInfo[i]];
         auto bb = getBBfromFace(face, _vertices);
         minX = std::min(minX, bb.pMin.x);
         minY = std::min(minY, bb.pMin.y);
@@ -79,10 +79,10 @@ BVHBuildNode *RasterBVH::__recursiveBuild(int start, int end)
         bounds.pMin.y -= _voxel_length;
         bounds.pMin.z -= _voxel_length;
 
-        Uint firstposition = _orderdata.size();
+        Uint firstposition = orderedData.size();
         for (Uint i = start; i < end; i++)
         {
-            _orderdata.push_back(_faceInfo[i]);
+            orderedData.push_back(_faceInfo[i]);
         }
         node->initLeaf(firstposition, nPrimitives, bounds);
         _depth--;
@@ -92,8 +92,8 @@ BVHBuildNode *RasterBVH::__recursiveBuild(int start, int end)
     // if only one primitive, set the node as a leaf node
     if (nPrimitives == 1)
     {
-        Uint firstposition = _orderdata.size();
-        _orderdata.push_back(_faceInfo[start]);
+        Uint firstposition = orderedData.size();
+        orderedData.push_back(_faceInfo[start]);
         node->initLeaf(firstposition, 1, bounds);
         _depth--;
         return node;
@@ -160,7 +160,7 @@ BVHBuildNode *RasterBVH::__recursiveBuildSAH(int start, int end)
     maxX = maxY = maxZ = -std::numeric_limits<float>::infinity();
     for (int i = start; i < end; i++)
     {
-        auto &face = _faces[i];
+        auto &face = _faces[_faceInfo[i]];
         auto bb = getBBfromFace(face, _vertices);
         minX = std::min(minX, bb.pMin.x);
         minY = std::min(minY, bb.pMin.y);
@@ -189,10 +189,10 @@ BVHBuildNode *RasterBVH::__recursiveBuildSAH(int start, int end)
         bounds.pMin.y -= _voxel_length;
         bounds.pMin.z -= _voxel_length;
 
-        Uint firstposition = _orderdata.size();
+        Uint firstposition = orderedData.size();
         for (Uint i = start; i < end; i++)
         {
-            _orderdata.push_back(_faceInfo[i]);
+            orderedData.push_back(_faceInfo[i]);
         }
         node->initLeaf(firstposition, nPrimitives, bounds);
         _depth--;
@@ -202,8 +202,8 @@ BVHBuildNode *RasterBVH::__recursiveBuildSAH(int start, int end)
     // if only one primitive, set the node as a leaf node
     if (nPrimitives == 1)
     {
-        Uint firstposition = _orderdata.size();
-        _orderdata.push_back(_faceInfo[start]);
+        Uint firstposition = orderedData.size();
+        orderedData.push_back(_faceInfo[start]);
         node->initLeaf(firstposition, 1, bounds);
         _depth--;
         return node;
@@ -275,21 +275,12 @@ BVHBuildNode *RasterBVH::__recursiveBuildSAH(int start, int end)
 
 void RasterBVH::__traversalBVH(BVHBuildNode *node)
 {
-    if (node->splitAxis == 3)
+    // _traversalDebug(node->bounds);
+    if (!_traversalRenderCallback(node, _context)) // if the node is culled(only for internal nodes)
+        return;
+    _context.culledNodes--;
+    if (node->splitAxis != 3) // internal node
     {
-        // _traversalDebug(node->bounds);
-        _traversalRenderCallback(node, _context);
-        _context.culledNodes--;
-    }
-    else
-    {
-        // _traversalDebug(node->bounds);
-        _traversalRenderCallback(node, _context);
-        //  if (!_traversalRenderCallback(node, _context))
-        // {
-        //     return;
-        // }
-        _context.culledNodes--;
         __traversalBVH(node->children[0]);
         __traversalBVH(node->children[1]);
     }
