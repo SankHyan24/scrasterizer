@@ -22,8 +22,6 @@ public:
             tileCountY++;
         maxZ = new float[tileCountX * tileCountY];
         std::fill(maxZ, maxZ + tileCountX * tileCountY, std::numeric_limits<float>::infinity());
-        // for (int i = 0; i < tileCountX * tileCountY; i++)
-        //     maxZ[i] = std::numeric_limits<float>::infinity();
 
         std::cout << "HeirarZBuffer construction done" << std::endl;
         std::cout << "Have " << tileCountX << " tiles in x direction, and " << tileCountY << " tiles in y direction" << std::endl;
@@ -32,15 +30,20 @@ public:
     {
         delete[] maxZ;
     }
-
-    bool ifTileNeedRender(Uint2 bbpMin, Uint2 bbpMax, Uint idx, Uint idy, float bbMinZ)
+    void resetMaxZ()
     {
+        std::fill(maxZ, maxZ + tileCountX * tileCountY, std::numeric_limits<float>::infinity());
+    }
+    bool ifTileNeedRender(Sint2 bbpMin, Sint2 bbpMax, Uint idx, Uint idy, float bbMinZ)
+    {
+        assert(idx < tileCountX && idy < tileCountY && "ifTileNeedRender: idx or idy out of range");
         int pxMin = idx * pixelPerTileX, pxMax = (idx + 1) * pixelPerTileX;
         int pyMin = idy * pixelPerTileY, pyMax = (idy + 1) * pixelPerTileY;
+        pxMax = pxMax >= width ? width - 1 : pxMax;
+        pyMax = pyMax >= height ? height - 1 : pyMax;
         if (bbpMin.x > pxMax || bbpMax.x < pxMin || bbpMin.y > pyMax || bbpMax.y < pyMin)
             return false;
-        return true;
-        if (bbMinZ <= maxZ[idy * tileCountX + idx])
+        if (bbMinZ < maxZ[idy * tileCountX + idx])
             return true;
         return false;
     }
@@ -51,8 +54,8 @@ public:
         float maxZ_ = -std::numeric_limits<float>::infinity();
         int xMin = idx * pixelPerTileX, xMax = (idx + 1) * pixelPerTileX;
         int yMin = idy * pixelPerTileY, yMax = (idy + 1) * pixelPerTileY;
-        for (int i = yMin; i < yMax; i++)
-            for (int j = xMin; j < xMax; j++)
+        for (int i = yMin; i < yMax && i < height; i++)
+            for (int j = xMin; j < xMax && j < width; j++)
                 maxZ_ = maxZ_ < zBufferData[i * width + j] ? zBufferData[i * width + j] : maxZ_;
         maxZ[idy * tileCountX + idx] = maxZ_;
     }
@@ -116,24 +119,6 @@ public:
     void buildBVH()
     {
         __buildBVH();
-        BVHDebugCallBack debug = [this](BoundingBox3f bb) -> bool
-        {
-            __drawBoundingBoxFrame(bb);
-            return true;
-        };
-        bvh->_traversalDebug = debug;
-
-        BVHRenderCallBack render = [this](BVHBuildNode *node, RasterBVHContext &context) -> bool
-        {
-            // [print node.bounds.info]
-            if (node->splitAxis != 3)
-            {
-                return __drawBoundingBoxInter(*node, context);
-            }
-            __drawBoundingBoxLeaf(*node, context);
-            return true;
-        };
-        bvh->_traversalRenderCallback = render;
     }
     void drawFragment()
     {
@@ -162,14 +147,28 @@ private:
     }
     void __buildBVH()
     {
-        bvh = std::make_unique<RasterBVH>(faces, vertices, 0.005, 0.010);
+        bvh = std::make_unique<RasterBVH>(faces, vertices, 0.01, 0.020);
+        // set debug and render callback
+        BVHDebugCallBack debug = [this](BoundingBox3f bb) -> bool
+        {
+            __drawBoundingBoxFrame(bb);
+            return true;
+        };
+        bvh->_traversalDebug = debug;
+        BVHRenderCallBack render = [this](BVHBuildNode *node, RasterBVHContext &context) -> bool
+        {
+            if (node->splitAxis != 3) // internal node
+                return __drawBoundingBoxInter(*node, context);
+            return __drawBoundingBoxLeaf(*node, context); // leaf node
+        };
+        bvh->_traversalRenderCallback = render;
     }
     void __fragmentShader()
     {
+        tileManager->resetMaxZ();
         bvh->traversalBVH();
-        tileManager->drawZ();
     }
-    void __drawBoundingBoxLeaf(BVHBuildNode &node, RasterBVHContext &context)
+    bool __drawBoundingBoxLeaf(BVHBuildNode &node, RasterBVHContext &context)
     {
         Uint needTileFromX{0}, needTileToX{tileManager->tileCountX}, needTileFromY{0}, needTileToY{tileManager->tileCountY};
         bool need_draw = false;
@@ -179,28 +178,30 @@ private:
 
         float newBBxMin = bb.pMinNew.x, newBBxMax = bb.pMaxNew.x;
         float newBByMin = bb.pMinNew.y, newBByMax = bb.pMaxNew.y;
+        float bbminZ = bb.pMinNew.z;
         // to screen space
         newBBxMin = (newBBxMin + 1.0f) * width / 2.0f;
         newBBxMax = (newBBxMax + 1.0f) * width / 2.0f;
         newBByMin = (newBByMin + 1.0f) * height / 2.0f;
         newBByMax = (newBByMax + 1.0f) * height / 2.0f;
-        Uint2 newBBMin = Uint2(newBBxMin, newBByMin);
-        Uint2 newBBMax = Uint2(newBBxMax, newBByMax);
+        Sint2 newBBMin = Sint2(std::floor(newBBxMin), std::floor(newBByMin));
+        Sint2 newBBMax = Sint2(std::ceil(newBBxMax), std::ceil(newBByMax));
         for (int i = needTileFromX; i < needTileToX; i++)
             for (int j = needTileFromY; j < needTileToY; j++)
-                if (tileManager->ifTileNeedRender(newBBMin, newBBMax, i, j, bb.getMinZ()))
+                if (tileManager->ifTileNeedRender(newBBMin, newBBMax, i, j, bbminZ))
                 {
                     tileMaxZUpdateList.push_back(i);
                     tileMaxZUpdateList.push_back(j);
                     need_draw = true;
                 }
         if (!need_draw)
-            return;
+            return false;
         std::vector<Uint> face_render_list;
-        std::vector<Uint> &orderdata = bvh->_orderdata;
+        std::vector<Uint> &orderdata = bvh->orderedData;
         for (int i = node.firstPrimOffset; i < node.firstPrimOffset + node.nPrimitives; i++)
         {
-            face_render_list.push_back(orderdata[i]);
+            Uint faceIndex = orderdata[i];
+            face_render_list.push_back(faceIndex);
         }
         for (int i = 0; i < face_render_list.size(); i++)
         {
@@ -212,6 +213,7 @@ private:
             tileManager->updateTileMaxZ(tileMaxZUpdateList[i], tileMaxZUpdateList[i + 1]);
         }
         context.culledFaces -= face_render_list.size();
+        return true;
     }
     bool __drawBoundingBoxInter(BVHBuildNode &node, RasterBVHContext &context)
     {
@@ -221,18 +223,19 @@ private:
 
         float newBBxMin = bb.pMinNew.x, newBBxMax = bb.pMaxNew.x;
         float newBByMin = bb.pMinNew.y, newBByMax = bb.pMaxNew.y;
+        float bbminZ = bb.pMinNew.z;
         // to screen space
         newBBxMin = (newBBxMin + 1.0f) * width / 2.0f;
         newBBxMax = (newBBxMax + 1.0f) * width / 2.0f;
         newBByMin = (newBByMin + 1.0f) * height / 2.0f;
         newBByMax = (newBByMax + 1.0f) * height / 2.0f;
-        Uint2 newBBMin = Uint2(newBBxMin, newBByMin);
-        Uint2 newBBMax = Uint2(newBBxMax, newBByMax);
+        Sint2 newBBMin = Sint2(std::floor(newBBxMin), std::floor(newBByMin));
+        Sint2 newBBMax = Sint2(std::ceil(newBBxMax), std::ceil(newBByMax));
         for (int i = needTileFromX; i < needTileToX; i++)
         {
             for (int j = needTileFromY; j < needTileToY; j++)
             {
-                if (tileManager->ifTileNeedRender(newBBMin, newBBMax, i, j, bb.getMinZ()))
+                if (tileManager->ifTileNeedRender(newBBMin, newBBMax, i, j, bbminZ))
                 {
                     need_draw = true;
                     break;
