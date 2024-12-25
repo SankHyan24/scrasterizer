@@ -451,7 +451,7 @@ private:
         ImGui::Text("BVH Total Nodes: %d", zbuffer->bvh->_totalNodes);
         ImGui::Text("BVH Depth: %d", zbuffer->bvh->_maxDepth);
         ImGui::Separator();
-        ImGui::Text("Culled Nodes: %d", zbuffer->bvh->_context.culledNodes);
-        ImGui::Text("Culled Faces: %d", zbuffer->bvh->_context.culledFaces);
+        ImGui::Text("Culled Nodes: %8d  ratio(%2.1f%%)", zbuffer->bvh->_context.culledNodes, zbuffer->bvh->_context.culledNodes * 100.0f / zbuffer->bvh->_totalNodes);
+        ImGui::Text("Culled Faces: %8d  ratio(%2.1f%%)", zbuffer->bvh->_context.culledFaces, zbuffer->bvh->_context.culledFaces * 100.0f / zbuffer->faces.size());
     }
 };
