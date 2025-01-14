@@ -84,7 +84,7 @@ void Rasterizer::implementTransform(std::string file_name, const glm::mat4 &tran
 
 void Rasterizer::loadOBJ(const std::string &filename)
 {
-    assert(isGPU == false && "You use GPU mode, please use loadOBJ(const std::string &filename, const std::string &shadername) instead!");
+    assert(isGPU == false && "You use GPU mode, obj need corresponding shader. Please use loadOBJ(const std::string &filename, const std::string &shadername) instead!");
     scene->addOBJ(filename);
 }
 

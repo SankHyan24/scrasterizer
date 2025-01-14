@@ -1,17 +1,19 @@
 #pragma once
 #include <zbuffer/naivezbuffer.hpp>
 #include <core/bvh.hpp>
+#include <core/mipmap.hpp>
 
-class HeirarZBuffer
+class EzHeirarZBuffer
 {
 public:
+    bool activated{true};
     int height, width;
     float *zBufferData{nullptr};
     float *colorBufferData{nullptr};
     Uint pixelPerTileX, pixelPerTileY;
     Uint tileCountX, tileCountY;
     float *maxZ;
-    HeirarZBuffer(int width, int height, float *zBufferData, float *colorBufferData, Uint pixelPerTileX = 32, Uint pixelPerTileY = 32)
+    EzHeirarZBuffer(int width, int height, float *zBufferData, float *colorBufferData, Uint pixelPerTileX = 32, Uint pixelPerTileY = 32)
         : width(width), height(height), pixelPerTileX(pixelPerTileX), pixelPerTileY(pixelPerTileY), zBufferData(zBufferData), colorBufferData(colorBufferData)
     {
         tileCountX = width / pixelPerTileX;
@@ -23,15 +25,17 @@ public:
         maxZ = new float[tileCountX * tileCountY];
         std::fill(maxZ, maxZ + tileCountX * tileCountY, std::numeric_limits<float>::infinity());
 
-        std::cout << "HeirarZBuffer construction done" << std::endl;
+        std::cout << "EzHeirarZBuffer construction done" << std::endl;
         std::cout << "Have " << tileCountX << " tiles in x direction, and " << tileCountY << " tiles in y direction" << std::endl;
     }
-    ~HeirarZBuffer()
+    ~EzHeirarZBuffer()
     {
         delete[] maxZ;
     }
     void resetMaxZ()
     {
+        if (!activated)
+            return;
         std::fill(maxZ, maxZ + tileCountX * tileCountY, std::numeric_limits<float>::infinity());
     }
     bool ifTileNeedRender(Sint2 bbpMin, Sint2 bbpMax, Uint idx, Uint idy, float bbMinZ)
@@ -43,6 +47,8 @@ public:
         pyMax = pyMax >= height ? height - 1 : pyMax;
         if (bbpMin.x > pxMax || bbpMax.x < pxMin || bbpMin.y > pyMax || bbpMax.y < pyMin)
             return false;
+        if (!activated)
+            return true;
         if (bbMinZ < maxZ[idy * tileCountX + idx])
             return true;
         return false;
@@ -50,6 +56,8 @@ public:
 
     void updateTileMaxZ(Uint idx, Uint idy)
     {
+        if (!activated)
+            return;
         assert(idx < tileCountX && idy < tileCountY && "updateTileMaxZ: idx or idy out of range");
         float maxZ_ = -std::numeric_limits<float>::infinity();
         int xMin = idx * pixelPerTileX, xMax = (idx + 1) * pixelPerTileX;
@@ -80,6 +88,58 @@ public:
             }
     }
 };
+
+class HeirarZBuffer
+{
+public:
+    bool activated{true};
+    int height, width;
+    float *zBufferData{nullptr};
+    float *colorBufferData{nullptr};
+    std::unique_ptr<MipMap> HZB{nullptr};
+
+    HeirarZBuffer(int width, int height, float *zBufferData, float *colorBufferData) : width(width), height(height), zBufferData(zBufferData), colorBufferData(colorBufferData)
+    {
+        HZB = std::make_unique<MipMap>(width, height);
+    }
+    ~HeirarZBuffer() = default;
+
+    // utility functions
+    bool tileInScreenTest(Sint2 bbpMin, Sint2 bbpMax)
+    {
+        // test if the tile is in the screen
+        int pxMin = 0, pxMax = width - 1;
+        int pyMin = 0, pyMax = height - 1;
+        if (bbpMin.x > pxMax || bbpMax.x < pxMin || bbpMin.y > pyMax || bbpMax.y < pyMin)
+            return false;
+        return true;
+    }
+
+    bool tileVisibleTest(Uint idx, Uint idy, float bbMinZ)
+    {
+        // 层次化遍历mipmap
+        for (int i = HZB->mipMap.size() - 1; i >= 0; i--)
+        {
+            Uint2 bbMin, bbMax;
+            HZB->getMipMapBB(i, idx, idy, bbMin, bbMax);
+            for (int j = bbMin.y; j <= bbMax.y; j++)
+                for (int k = bbMin.x; k <= bbMax.x; k++)
+                {
+                    if (HZB->mipMap[i].data[j * HZB->mipMap[i].width + k] < bbMinZ)
+                        return true;
+                }
+        }
+    }
+
+    void findMinBBPixel(Sint2 bbMin, Sint2 bbMax, int &lvl, int &pixelX, int &pixelY)
+    {
+        // turn to unsigned int
+        Uint2 bbpMin = Uint2(Max2(0, bbMin.x), Max2(0, bbMin.y));
+        Uint2 bbpMax = Uint2(Min2(width - 1, bbMax.x), Min2(height - 1, bbMax.y));
+        HZB->findMinBBPixel(bbpMin, bbpMax, lvl, pixelX, pixelY);
+    }
+};
+
 class HeirarZBufferHelper
 {
 public:
@@ -89,7 +149,8 @@ public:
     std::vector<Vertex> vertices;
     std::vector<Face> faces;
     std::unique_ptr<RasterBVH> bvh{nullptr};
-    std::unique_ptr<HeirarZBuffer> tileManager{nullptr};
+    std::unique_ptr<EzHeirarZBuffer> tileManager{nullptr};
+    std::unique_ptr<HeirarZBuffer> HZB{nullptr};
     glm::mat4 mvp;
     Camera &camera;
 
@@ -97,7 +158,8 @@ public:
     {
         zBufferData = new float[width * height];
         colorBufferData = new float[width * height * 3];
-        tileManager = std::make_unique<HeirarZBuffer>(width, height, zBufferData, colorBufferData);
+        tileManager = std::make_unique<EzHeirarZBuffer>(width, height, zBufferData, colorBufferData);
+        HZB = std::make_unique<HeirarZBuffer>(width, height, zBufferData, colorBufferData);
     }
     ~HeirarZBufferHelper()
     {
@@ -244,6 +306,12 @@ private:
             if (need_draw)
                 break;
         }
+        // new version
+        // int lvl, pixelX, pixelY;
+        // HZB->findMinBBPixel(newBBMin, newBBMax, lvl, pixelX, pixelY);
+        // std::cout << "for NewBBMin: " << newBBMin.x << " " << newBBMin.y << " NewBBMax: " << newBBMax.x << " " << newBBMax.y << std::endl;
+        // std::cout << "lvl: " << lvl << " pixelX: " << pixelX << " pixelY: " << pixelY << std::endl;
+
         return need_draw;
     }
     void __drawBoundingBoxFrame(BoundingBox3f &bb)
@@ -450,6 +518,10 @@ private:
         ImGui::Text("Face Count: %d", zbuffer->faces.size());
         ImGui::Text("BVH Total Nodes: %d", zbuffer->bvh->_totalNodes);
         ImGui::Text("BVH Depth: %d", zbuffer->bvh->_maxDepth);
+        ImGui::Separator();
+        ImGui::Checkbox("H-Z-Buffer Activated", &zbuffer->tileManager->activated);
+        if (!zbuffer->tileManager->activated)
+            ImGui::Text("Only use Screen Space Face Culling");
         ImGui::Separator();
         ImGui::Text("Culled Nodes: %8d  ratio(%2.1f%%)", zbuffer->bvh->_context.culledNodes, zbuffer->bvh->_context.culledNodes * 100.0f / zbuffer->bvh->_totalNodes);
         ImGui::Text("Culled Faces: %8d  ratio(%2.1f%%)", zbuffer->bvh->_context.culledFaces, zbuffer->bvh->_context.culledFaces * 100.0f / zbuffer->faces.size());

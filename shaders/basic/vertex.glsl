@@ -16,4 +16,5 @@ void main()
     gl_Position = clipSpace;
     TexCoords = (clipSpace.xy / clipSpace.w + 1.0) / 2.0;
     ourColor = aNormal;
+    // ourColor = aPosition;
 }

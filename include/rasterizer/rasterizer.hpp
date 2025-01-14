@@ -6,6 +6,15 @@
 #include <rasterizer/scene.hpp>
 #include <window/canvas.hpp>
 
+/***
+ * Rasterizer
+ *  The main class for rasterizer
+ * It contains the scene, canvas, window
+ * It also contains the main render function
+ * It also contains some utils functions
+ *
+ * Use it as a base class for your rasterizer
+ */
 class Rasterizer
 {
 public:
@@ -74,6 +83,16 @@ private:
     virtual void __printHello();
 };
 
+/***
+ * EzRasterizer
+ * A simple rasterizer for GPU Debug
+ * It is a subclass of Rasterizer
+ *
+ * IF use GPU, it will render the scene by GPU
+ * ELSE it will render the scene by CPU
+ *
+ * CPU version is just draw the triangle frame.
+ */
 class EzRasterizer : public Rasterizer
 {
 public:

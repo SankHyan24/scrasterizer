@@ -56,13 +56,13 @@ void OBJLoader::__parse()
             }
             else if (line[1] == 'n')
             {
-                Normal n = __parseNormal(line);
-                obj->addNormal(n);
+                // Normal n = __parseNormal(line);
+                // obj->addNormal(n);
             }
             else if (line[1] == 't')
             {
-                TexutreUV uv = __parseUV(line);
-                obj->addUV(uv);
+                // TexutreUV uv = __parseUV(line);
+                // obj->addUV(uv);
             }
             break;
         case 'f':
@@ -165,9 +165,12 @@ Face OBJLoader::__parseFace(const std::string &line)
 void OBJLoader::__autoAddNormal()
 {
     // if no normal, auto add normal
-    bool normal_exist = obj->getNormals().size() > 0;
-    if (normal_exist)
-        return;
+    // bool normal_exist = obj->getNormals().size() > 0;
+    // if (normal_exist)
+    // {
+    //     obj->autoSetVertexNormal();
+    //     return;
+    // }
     std::cerr << "Auto add normal" << std::endl;
     // this is vertex normal, so we need to calculate the weighted normal for each vertex
     std::vector<Normal> face_normals(obj->getFaces().size());

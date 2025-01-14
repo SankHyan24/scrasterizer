@@ -11,6 +11,9 @@ public:
     virtual void intersect() = 0;
 };
 
+/***
+ * BVH Node Struct
+ */
 struct BVHBuildNode
 {
     BoundingBox3f bounds;

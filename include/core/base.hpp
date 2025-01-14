@@ -44,6 +44,18 @@ Point3<T> Max(const Point3<T> &p1, const Point3<T> &p2)
 }
 
 template <typename T>
+T Max2(const T &a, const T &b)
+{
+    return a > b ? a : b;
+}
+
+template <typename T>
+T Min2(const T &a, const T &b)
+{
+    return a < b ? a : b;
+}
+
+template <typename T>
 struct BoundingBox3
 {
     Point3<T> pMin, pMax;
